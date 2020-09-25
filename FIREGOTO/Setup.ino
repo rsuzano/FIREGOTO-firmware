@@ -55,12 +55,14 @@ void RotinadeSetup() //:HSETUPON#
 
   AzMotor.setSpeed(0);
   AltMotor.setSpeed(0);
+  SerialPrint(" \n :HSRD00# -> Valor de Micropassos: ");
+  SerialPrint(String(Reducao));
   SerialPrint(" \n Total da Relacao de engrenagens de RA/ALT: ");
   SerialPrint(String(MaxPassoAlt));
-  SerialPrint(" (:HSAL0000000# -> reducao * numero passos * micropasso)\n");
+  SerialPrint(" (:HSAL00000000# -> (reducao * numero passos * micropasso)*2))\n");
   SerialPrint(" \n Total da Relacao de engrenagens de DEC/AZ: ");
   SerialPrint(String(MaxPassoAz));
-  SerialPrint(" (:HSAZ0000000# -> reducao * numero passos * micropasso) \n");
+  SerialPrint(" (:HSAZ00000000# -> (reducao * numero passos * micropasso)*2)) \n");
 
   SerialPrint(" \n Para sair :HSETUPOFF# ");
   setupflag = 1;
@@ -70,4 +72,3 @@ void RotinadeSetupOff() //:HSETUPOFF#
 {
   setupflag = 0;
 }
-

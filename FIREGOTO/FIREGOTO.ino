@@ -49,6 +49,7 @@ double dMaxPassoAz = 3844654; /*/valor de resolucao AR = Passo * MicroPasso * re
 int dMinTimer = 500; /*/passo*/
 double dMaxSpeedAlt = 3844654;
 double dMaxSpeedAz = 3844654;
+int dReducao = 32;
 
 
 //Variaveis de persistencia e estrutura de dados ----------------------------------------------------------------------------------------------------------------
@@ -56,6 +57,7 @@ DueFlashStorage dueFlashStorage;
 
 // The struct of the configuration.
 struct Configuration {
+  int32_t Reducao;
   int32_t MaxPassoAlt;
   int32_t MaxPassoAz;
   int32_t MinTimer;
@@ -70,7 +72,7 @@ struct Configuration {
 Configuration configuration;
 Configuration configurationFromFlash; // create a temporary struct
 
-
+int Reducao;
 int MaxPassoAlt;
 int MaxPassoAz;
 int MaxSpeedAz = dMaxSpeedAz;
@@ -173,6 +175,7 @@ void setup() {
   if (codeRunningForTheFirstTime) {
     Serial.println("yes");
     /* OK first time running, set defaults */
+    configuration.Reducao = dReducao;
     configuration.MaxPassoAlt = dMaxPassoAlt;
     configuration.MaxPassoAz = dMaxPassoAz;
     configuration.MinTimer = dMinTimer;
@@ -200,6 +203,7 @@ void setup() {
   
   byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
   memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
+  Reducao = configurationFromFlash.Reducao;
   MaxPassoAlt = configurationFromFlash.MaxPassoAlt;
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
   dMaxPassoAlt =   MaxPassoAlt;
@@ -316,7 +320,3 @@ void loop() {
   AlteraMicroSeg();
 
 }
-
-
-
-

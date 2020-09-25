@@ -139,6 +139,10 @@ void executecommand()
             {
               flagDebug = 1;
             }
+            if (Command[numCommandexec][4] == 'D') //:HSRD00#
+            {
+              setReducao();
+            }
             if (Command[numCommandexec][4] == 'L') //:HSAL0000000#
             {
               setMaxPassoAlt();
@@ -1036,7 +1040,25 @@ void MoveRate()
   }
 }
 
-void setMaxPassoAlt()  //:HSRA0000000#
+void setReducao()  //:HSRD00#
+//Set microsteps
+{
+  String str = "";
+  str += Command[numCommandexec][5];
+  str += Command[numCommandexec][6];
+  unsigned int SS = str.toInt();
+  configurationFromFlash.Reducao = SS;
+  Reducao = configurationFromFlash.Reducao;
+  // write configuration struct to flash at adress 4
+  byte b2[sizeof(Configuration)]; // create byte array to store the struct
+  memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
+  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  SerialPrint("1 - REDOK");
+
+}
+
+void setMaxPassoAlt()  //:HSAL00000000#
+//Add new value to get microsteps over 10kk
 {
   String str = "";
   str += Command[numCommandexec][5];
@@ -1046,6 +1068,7 @@ void setMaxPassoAlt()  //:HSRA0000000#
   str += Command[numCommandexec][9];
   str += Command[numCommandexec][10];
   str += Command[numCommandexec][11];
+  str += Command[numCommandexec][12];
   unsigned int SS = str.toInt();
   configurationFromFlash.MaxPassoAlt = SS;
   MaxPassoAlt = configurationFromFlash.MaxPassoAlt;
@@ -1057,7 +1080,8 @@ void setMaxPassoAlt()  //:HSRA0000000#
 
 }
 
-void setMaxPassoAz() //:HSRB0000000#
+void setMaxPassoAz() //:HSAZ00000000#
+//Add new value to get microsteps over 10kk
 {
   String str = "";
   str += Command[numCommandexec][5];
@@ -1067,6 +1091,7 @@ void setMaxPassoAz() //:HSRB0000000#
   str += Command[numCommandexec][9];
   str += Command[numCommandexec][10];
   str += Command[numCommandexec][11];
+  str += Command[numCommandexec][12];
   unsigned int SS = str.toInt();
   configurationFromFlash.MaxPassoAz = SS;
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
@@ -1319,6 +1344,3 @@ void getMinTimer() //:HGT#
   P-Parked, p-Not parked, F-Park Failed,
   I-park In progress, R-PEC Recorded 	:GU# 	Reply: sss#
 */
-
-
-

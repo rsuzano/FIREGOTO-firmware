@@ -37,9 +37,9 @@ void IniciaMotores()
   digitalWrite(MotorAZ_Ativa, LOW);
 
   AltMotor.setMaxSpeed(dMaxSpeedAlt);
-  AltMotor.setAcceleration(32);
+  AltMotor.setAcceleration(dReducao);
   AzMotor.setMaxSpeed(dMaxSpeedAz);
-  AzMotor.setAcceleration(32);
+  AzMotor.setAcceleration(dReducao);
   Timer3.start(MinTimer);
   Timer3.attachInterrupt(runmotor);
 
@@ -88,9 +88,9 @@ void setaccel()
 {
   double tempdis;
   tempdis = abs(AzMotor.distanceToGo());
-  AzMotor.setMaxSpeed(tempdis * 32 );
+  AzMotor.setMaxSpeed(tempdis * dReducao );
   tempdis = abs(AltMotor.distanceToGo());
-  AltMotor.setMaxSpeed(tempdis * 32 );
+  AltMotor.setMaxSpeed(tempdis * dReducao );
 }
 
 void setaccel(int Accel)
@@ -173,18 +173,18 @@ void BaixaResolucao ()
 {
   if ( MaxPassoAz == dMaxPassoAz)
   {
-    MaxPassoAz = dMaxPassoAz / 32;
-    MaxPassoAlt = dMaxPassoAlt / 32;
+    MaxPassoAz = dMaxPassoAz / dReducao;
+    MaxPassoAlt = dMaxPassoAlt / dReducao;
     digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, HIGH);
+    digitalWrite(MotorALT_M0, LOW);
     digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, HIGH);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / 32);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / 32);
-    AltMotor.setAcceleration(32 * 4);
-    AzMotor.setAcceleration(32 * 4);
+    digitalWrite(MotorAZ_M0, LOW);
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
+    AltMotor.setAcceleration(dReducao * 4);
+    AzMotor.setAcceleration(dReducao * 4);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -194,12 +194,12 @@ void BaixaResolucaoAz ()
 {
   if ( MaxPassoAz == dMaxPassoAz)
   {
-    MaxPassoAz = dMaxPassoAz / 32;
+    MaxPassoAz = dMaxPassoAz / dReducao;
     digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, HIGH);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / 32);
-    AzMotor.setAcceleration(32 * 4);
+    digitalWrite(MotorAZ_M0, LOW);
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
+    AzMotor.setAcceleration(dReducao * 4);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -209,12 +209,12 @@ void BaixaResolucaoAlt ()
 {
   if ( MaxPassoAlt == dMaxPassoAlt)
   {
-    MaxPassoAlt = dMaxPassoAlt / 32;
+    MaxPassoAlt = dMaxPassoAlt / dReducao;
     digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, HIGH);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / 32);
-    AltMotor.setAcceleration(32 * 4);
+    digitalWrite(MotorALT_M0, LOW);
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
+    AltMotor.setAcceleration(dReducao * 4);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -227,18 +227,18 @@ void AltaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz;
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, HIGH);
+    digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, HIGH);
     digitalWrite(MotorALT_M0, HIGH);
-    digitalWrite(MotorAZ_M2, HIGH);
+    digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, HIGH);
     digitalWrite(MotorAZ_M0, HIGH);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * 32);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * 32);
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AltMotor.setAcceleration(32 * 32 * 2);
-    AzMotor.setAcceleration(32 * 32 * 2);
+    AltMotor.setAcceleration(dReducao * dReducao * 2);
+    AzMotor.setAcceleration(dReducao * dReducao * 2);
     ledStateG = LOW;
   }
 }
@@ -247,13 +247,13 @@ void AltaResolucaoAz ()
   if ( MaxPassoAz != dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz;
-    digitalWrite(MotorAZ_M2, HIGH);
+    digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, HIGH);
     digitalWrite(MotorAZ_M0, HIGH);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * 32);
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AzMotor.setAcceleration(32 * 32 * 2);
+    AzMotor.setAcceleration(dReducao * dReducao * 2);
     ledStateG = LOW;
   }
 }
@@ -262,13 +262,13 @@ void AltaResolucaoAlt ()
   if ( MaxPassoAlt != dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, HIGH);
+    digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, HIGH);
     digitalWrite(MotorALT_M0, HIGH);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * 32);
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AltMotor.setAcceleration(32 * 32 * 2);
+    AltMotor.setAcceleration(dReducao * dReducao * 2);
     ledStateG = LOW;
   }
 }
@@ -307,5 +307,3 @@ void protegemount()
     ativaacom = 0;
   }
 }
-
-
