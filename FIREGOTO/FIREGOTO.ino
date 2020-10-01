@@ -35,9 +35,9 @@ int accel = 1;
 
 
 //LEDs
-#define LedB 51
-#define LedR 49
-#define LedG 53
+#define LedB 49
+#define LedR 53
+#define LedG 51
 int ledStateR = LOW;
 int ledStateB = LOW;
 int ledStateG = LOW;
