@@ -1,3 +1,21 @@
+/*
+ *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
 void RotinadeSetup() //:HSETUPON#
 {
   SerialPrint("\n ######################################################################### \n");
@@ -55,14 +73,14 @@ void RotinadeSetup() //:HSETUPON#
 
   AzMotor.setSpeed(0);
   AltMotor.setSpeed(0);
-  SerialPrint(" \n :HSRD00# -> Valor de Micropassos: ");
+  SerialPrint(" \n :HSRD000# -> Valor de Micropassos: ");
   SerialPrint(String(Reducao));
   SerialPrint(" \n Total da Relacao de engrenagens de RA/ALT: ");
   SerialPrint(String(MaxPassoAlt));
-  SerialPrint(" (:HSAL00000000# -> (reducao * numero passos * micropasso)*2))\n");
+  SerialPrint(" (:HSAL00000000# -> (reducao * numero passos * micropasso)\n");
   SerialPrint(" \n Total da Relacao de engrenagens de DEC/AZ: ");
   SerialPrint(String(MaxPassoAz));
-  SerialPrint(" (:HSAZ00000000# -> (reducao * numero passos * micropasso)*2)) \n");
+  SerialPrint(" (:HSAZ00000000# -> (reducao * numero passos * micropasso) \n");
 
   SerialPrint(" \n Para sair :HSETUPOFF# ");
   setupflag = 1;

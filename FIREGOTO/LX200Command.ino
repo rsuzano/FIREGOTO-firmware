@@ -1,3 +1,21 @@
+/*
+ *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
 
 
 void executecommand()
@@ -1040,12 +1058,13 @@ void MoveRate()
   }
 }
 
-void setReducao()  //:HSRD00#
+void setReducao()  //:HSRD000#
 //Set microsteps
 {
   String str = "";
   str += Command[numCommandexec][5];
   str += Command[numCommandexec][6];
+  str += Command[numCommandexec][7];
   unsigned int SS = str.toInt();
   configurationFromFlash.Reducao = SS;
   Reducao = configurationFromFlash.Reducao;
@@ -1053,7 +1072,7 @@ void setReducao()  //:HSRD00#
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
   dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
-  SerialPrint("1 - REDOK");
+  SerialPrint("1 - Steps for stepper motors OK");
 
 }
 
@@ -1076,7 +1095,7 @@ void setMaxPassoAlt()  //:HSAL00000000#
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
   dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
-  SerialPrint("1");
+  SerialPrint("1 - OK Set AL microsteps");
 
 }
 
@@ -1098,7 +1117,7 @@ void setMaxPassoAz() //:HSAZ00000000#
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
   dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
-  SerialPrint("1");
+  SerialPrint("1 - OK Set AZ microsteps");
 
 }
 
@@ -1119,7 +1138,7 @@ void setMinTimer() //:HST00000#
   Timer3.stop();
   Timer3.start(MinTimer);
 
-  SerialPrint("1");
+  SerialPrint("1 - OK Set timer");
 }
 
 void setSentidoRA() //:HSSRA0#
@@ -1133,7 +1152,7 @@ void setSentidoRA() //:HSSRA0#
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
   dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
   SentidodosMotores();
-  SerialPrint("1");
+  SerialPrint("1 - OK Set RA Direction");
 }
 void setSentidoDEC() //:HSSDEC0#
 {
@@ -1146,7 +1165,7 @@ void setSentidoDEC() //:HSSDEC0#
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
   dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
   SentidodosMotores();
-  SerialPrint("1");
+  SerialPrint("1 - OK Set DEC Direction");
 }
 
 

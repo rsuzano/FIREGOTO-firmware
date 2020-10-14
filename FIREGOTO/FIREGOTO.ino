@@ -1,3 +1,21 @@
+/*
+ *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
 #include <AccelStepper.h>
 #include <Arduino.h>
 #include <math.h>
@@ -61,6 +79,9 @@ struct Configuration {
   int32_t MaxPassoAlt;
   int32_t MaxPassoAz;
   int32_t MinTimer;
+  int32_t AltaM2;
+  int32_t AltaM1;
+  int32_t AltaM0;
   int32_t SentidoDEC;
   int32_t SentidoRA;
   uint32_t DataHora;
@@ -80,6 +101,9 @@ int MaxSpeedAlt = dMaxSpeedAlt;
 int SentidoDEC = 0;
 int SentidoRA = 0;
 int MinTimer;
+int AltaM2;
+int AltaM1;
+int AltaM0;
 double latitude;
 double longitude;
 int UTC;
@@ -204,6 +228,31 @@ void setup() {
   byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
   memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
   Reducao = configurationFromFlash.Reducao;
+  if(Reducao==32) {
+    AltaM2 = HIGH;
+    AltaM1 = LOW;
+    AltaM0 = HIGH;
+  }
+  if(Reducao==16) {
+    AltaM2 = HIGH;
+    AltaM1 = LOW;
+    AltaM0 = LOW;
+  }
+  if(Reducao==8) {
+    AltaM2 = LOW;
+    AltaM1 = HIGH;
+    AltaM0 = HIGH;
+  }
+  if(Reducao==4) {
+    AltaM2 = LOW;
+    AltaM1 = HIGH;
+    AltaM0 = LOW;
+  }
+  if(Reducao==2) {
+    AltaM2 = LOW;
+    AltaM1 = LOW;
+    AltaM0 = HIGH;
+  }
   MaxPassoAlt = configurationFromFlash.MaxPassoAlt;
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
   dMaxPassoAlt =   MaxPassoAlt;

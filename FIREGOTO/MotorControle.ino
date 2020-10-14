@@ -1,3 +1,21 @@
+/*
+ *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
 void IniciaMotores()
 {
   //Iniciar as variaveis do motor de passo
@@ -227,12 +245,12 @@ void AltaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz;
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, LOW);
-    digitalWrite(MotorALT_M1, HIGH);
-    digitalWrite(MotorALT_M0, HIGH);
-    digitalWrite(MotorAZ_M2, LOW);
-    digitalWrite(MotorAZ_M1, HIGH);
-    digitalWrite(MotorAZ_M0, HIGH);
+    digitalWrite(MotorALT_M2, AltaM2);
+    digitalWrite(MotorALT_M1, AltaM1);
+    digitalWrite(MotorALT_M0, AltaM0);
+    digitalWrite(MotorAZ_M2, AltaM2);
+    digitalWrite(MotorAZ_M1, AltaM1);
+    digitalWrite(MotorAZ_M0, AltaM0);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
@@ -247,9 +265,9 @@ void AltaResolucaoAz ()
   if ( MaxPassoAz != dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz;
-    digitalWrite(MotorAZ_M2, LOW);
-    digitalWrite(MotorAZ_M1, HIGH);
-    digitalWrite(MotorAZ_M0, HIGH);
+    digitalWrite(MotorAZ_M2, AltaM2);
+    digitalWrite(MotorAZ_M1, AltaM1);
+    digitalWrite(MotorAZ_M0, AltaM0);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
@@ -262,9 +280,9 @@ void AltaResolucaoAlt ()
   if ( MaxPassoAlt != dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, LOW);
-    digitalWrite(MotorALT_M1, HIGH);
-    digitalWrite(MotorALT_M0, HIGH);
+    digitalWrite(MotorALT_M2, AltaM2);
+    digitalWrite(MotorALT_M1, AltaM1);
+    digitalWrite(MotorALT_M0, AltaM0);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
