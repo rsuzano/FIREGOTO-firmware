@@ -255,6 +255,7 @@ void setup() {
   }
   MaxPassoAlt = configurationFromFlash.MaxPassoAlt;
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
+  dReducao = Reducao;
   dMaxPassoAlt =   MaxPassoAlt;
   dMaxPassoAz =  MaxPassoAz;
   MinTimer = configurationFromFlash.MinTimer;

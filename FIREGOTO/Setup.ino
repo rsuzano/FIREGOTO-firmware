@@ -74,7 +74,13 @@ void RotinadeSetup() //:HSETUPON#
   AzMotor.setSpeed(0);
   AltMotor.setSpeed(0);
   SerialPrint(" \n :HSRD000# -> Valor de Micropassos: ");
-  SerialPrint(String(Reducao));
+  SerialPrint(String(dReducao));
+  SerialPrint(" \nValor de Alta Res M0: ");
+  SerialPrint(String(AltaM0));
+  SerialPrint(" \nValor de Alta Res M1: ");
+  SerialPrint(String(AltaM1));
+  SerialPrint(" \nValor de Alta Res M2: ");
+  SerialPrint(String(AltaM2));
   SerialPrint(" \n Total da Relacao de engrenagens de RA/ALT: ");
   SerialPrint(String(MaxPassoAlt));
   SerialPrint(" (:HSAL00000000# -> (reducao * numero passos * micropasso)\n");
