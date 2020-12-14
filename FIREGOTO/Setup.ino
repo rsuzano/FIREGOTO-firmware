@@ -22,12 +22,10 @@ void RotinadeSetup() //:HSETUPON#
   if (setupflag == 0)
   {
     SerialPrint(" \n Rotina inicial de Setup \n ");
-    digitalWrite(MotorALT_M2, LOW);
-    digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, HIGH);
-    digitalWrite(MotorAZ_M2, LOW);
-    digitalWrite(MotorAZ_M1, LOW);
-    digitalWrite(MotorAZ_M0, HIGH);
+    digitalWrite(MotorALT_CFG2, LOW);
+    digitalWrite(MotorALT_CFG2, LOW);
+    digitalWrite(MotorAZ_CFG2, LOW);
+    digitalWrite(MotorAZ_CFG1, LOW);
   }
   setupflag = 2;
 

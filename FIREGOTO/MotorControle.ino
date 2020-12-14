@@ -21,43 +21,36 @@ void IniciaMotores()
   //Iniciar as variaveis do motor de passo
   pinMode(MotorALT_Direcao, OUTPUT);
   pinMode(MotorALT_Passo, OUTPUT);
-  pinMode(MotorALT_Sleep, OUTPUT);
-  pinMode(MotorALT_Reset, OUTPUT);
-  pinMode(MotorALT_M2, OUTPUT);
-  pinMode(MotorALT_M1, OUTPUT);
-  pinMode(MotorALT_M0, OUTPUT);
+  pinMode(MotorALT_CS, OUTPUT);
+  pinMode(MotorALT_CFG2, OUTPUT);
+  pinMode(MotorALT_CFG1, OUTPUT);
   pinMode(MotorALT_Ativa, OUTPUT);
   pinMode(MotorAZ_Direcao, OUTPUT);
   pinMode(MotorAZ_Passo, OUTPUT);
-  pinMode(MotorAZ_Sleep, OUTPUT);
-  pinMode(MotorAZ_Reset, OUTPUT);
-  pinMode(MotorAZ_M2, OUTPUT);
-  pinMode(MotorAZ_M1, OUTPUT);
-  pinMode(MotorAZ_M0, OUTPUT);
+  pinMode(MotorAZ_CS, OUTPUT);
+  pinMode(MotorAZ_CFG2, OUTPUT);
+  pinMode(MotorAZ_CFG1, OUTPUT);
+
   pinMode(MotorAZ_Ativa, OUTPUT);
 
   //Aciona os pinos por padrão
   digitalWrite(MotorALT_Direcao, LOW);
   digitalWrite(MotorALT_Passo, LOW);
-  digitalWrite(MotorALT_Sleep, HIGH);
-  digitalWrite(MotorALT_Reset, HIGH);
-  digitalWrite(MotorALT_M2, HIGH);
-  digitalWrite(MotorALT_M1, HIGH);
-  digitalWrite(MotorALT_M0, HIGH);
+  digitalWrite(MotorALT_CS, HIGH);
+  digitalWrite(MotorALT_CFG2, HIGH);
+  digitalWrite(MotorALT_CFG1, HIGH);
   digitalWrite(MotorALT_Ativa, LOW);
   digitalWrite(MotorAZ_Direcao, LOW);
   digitalWrite(MotorAZ_Passo, LOW);
-  digitalWrite(MotorAZ_Sleep, HIGH);
-  digitalWrite(MotorAZ_Reset, HIGH);
-  digitalWrite(MotorAZ_M2, HIGH);
-  digitalWrite(MotorAZ_M1, HIGH );
-  digitalWrite(MotorAZ_M0, HIGH);
+  digitalWrite(MotorAZ_CS, HIGH);
+  digitalWrite(MotorAZ_CFG2, HIGH);
+  digitalWrite(MotorAZ_CFG1, HIGH);
   digitalWrite(MotorAZ_Ativa, LOW);
 
   AltMotor.setMaxSpeed(dMaxSpeedAlt);
-  AltMotor.setAcceleration(dReducao);
+  AltMotor.setAcceleration(16);
   AzMotor.setMaxSpeed(dMaxSpeedAz);
-  AzMotor.setAcceleration(dReducao);
+  AzMotor.setAcceleration(16);
   Timer3.start(MinTimer);
   Timer3.attachInterrupt(runmotor);
 
@@ -106,9 +99,9 @@ void setaccel()
 {
   double tempdis;
   tempdis = abs(AzMotor.distanceToGo());
-  AzMotor.setMaxSpeed(tempdis * dReducao );
+  AzMotor.setMaxSpeed(tempdis * 16 );
   tempdis = abs(AltMotor.distanceToGo());
-  AltMotor.setMaxSpeed(tempdis * dReducao );
+  AltMotor.setMaxSpeed(tempdis * 16 );
 }
 
 void setaccel(int Accel)
@@ -191,18 +184,12 @@ void BaixaResolucao ()
 {
   if ( MaxPassoAz == dMaxPassoAz)
   {
-    MaxPassoAz = dMaxPassoAz / dReducao;
-    MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
-    digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, LOW);
-    digitalWrite(MotorAZ_M2, LOW);
-    digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, LOW);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
-    AltMotor.setAcceleration(dReducao * 4);
-    AzMotor.setAcceleration(dReducao * 4);
+    MaxPassoAz = dMaxPassoAz / 16;
+    MaxPassoAlt = dMaxPassoAlt / 16;
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / 16);
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / 16);
+    AltMotor.setAcceleration(16 * 4);
+    AzMotor.setAcceleration(16 * 4);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -212,12 +199,9 @@ void BaixaResolucaoAz ()
 {
   if ( MaxPassoAz == dMaxPassoAz)
   {
-    MaxPassoAz = dMaxPassoAz / dReducao;
-    digitalWrite(MotorAZ_M2, LOW);
-    digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, LOW);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
-    AzMotor.setAcceleration(dReducao * 4);
+    MaxPassoAz = dMaxPassoAz / 16;
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / 16);
+    AzMotor.setAcceleration(16 * 4);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -227,12 +211,9 @@ void BaixaResolucaoAlt ()
 {
   if ( MaxPassoAlt == dMaxPassoAlt)
   {
-    MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
-    digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, LOW);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
-    AltMotor.setAcceleration(dReducao * 4);
+    MaxPassoAlt = dMaxPassoAlt / 16;
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / 16);
+    AltMotor.setAcceleration(16 * 4);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -245,18 +226,12 @@ void AltaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz;
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
-    digitalWrite(MotorALT_M1, AltaM1);
-    digitalWrite(MotorALT_M0, AltaM0);
-    digitalWrite(MotorAZ_M2, AltaM2);
-    digitalWrite(MotorAZ_M1, AltaM1);
-    digitalWrite(MotorAZ_M0, AltaM0);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * 16);
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * 16);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AltMotor.setAcceleration(dReducao * dReducao * 2);
-    AzMotor.setAcceleration(dReducao * dReducao * 2);
+    AltMotor.setAcceleration(16 * 16 * 2);
+    AzMotor.setAcceleration(16 * 16 * 2);
     ledStateG = LOW;
   }
 }
@@ -265,13 +240,11 @@ void AltaResolucaoAz ()
   if ( MaxPassoAz != dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz;
-    digitalWrite(MotorAZ_M2, AltaM2);
-    digitalWrite(MotorAZ_M1, AltaM1);
-    digitalWrite(MotorAZ_M0, AltaM0);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
+
+    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * 16);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AzMotor.setAcceleration(dReducao * dReducao * 2);
+    AzMotor.setAcceleration(16 * 16 * 2);
     ledStateG = LOW;
   }
 }
@@ -280,13 +253,10 @@ void AltaResolucaoAlt ()
   if ( MaxPassoAlt != dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
-    digitalWrite(MotorALT_M1, AltaM1);
-    digitalWrite(MotorALT_M0, AltaM0);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
+    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * 16);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AltMotor.setAcceleration(dReducao * dReducao * 2);
+    AltMotor.setAcceleration(16 * 16 * 2);
     ledStateG = LOW;
   }
 }

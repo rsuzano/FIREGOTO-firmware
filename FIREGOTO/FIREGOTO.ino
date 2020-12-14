@@ -14,6 +14,8 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    TMC BRANCH
  * 
  */
 #include <AccelStepper.h>
@@ -23,6 +25,11 @@
 #include <TimeLib.h>
 #include <DueTimer.h>
 #include <DueFlashStorage.h>
+#include <TMC2130Stepper.h>
+#include <TMC2130Stepper_REGDEFS.h>
+#include <TMC2130Stepper_UTILITY.h>
+
+
 
 //DEBUG
 int flagDebug = 0;
@@ -31,19 +38,15 @@ int flagDebug = 0;
 //Criacao dos motores
 #define MotorALT_Direcao 22
 #define MotorALT_Passo 24
-#define MotorALT_Sleep 26
-#define MotorALT_Reset 28
-#define MotorALT_M2 30
-#define MotorALT_M1 32
-#define MotorALT_M0 34
+#define MotorALT_CS 30
+#define MotorALT_CFG2 32
+#define MotorALT_CFG1 34
 #define MotorALT_Ativa 36
 #define MotorAZ_Direcao 38
 #define MotorAZ_Passo 40
-#define MotorAZ_Sleep 42
-#define MotorAZ_Reset 44
-#define MotorAZ_M2 46
-#define MotorAZ_M1 48
-#define MotorAZ_M0 50
+#define MotorAZ_CS 46
+#define MotorAZ_CFG2 48
+#define MotorAZ_CFG1 50
 #define MotorAZ_Ativa 52
 
 
@@ -67,7 +70,7 @@ double dMaxPassoAz = 3844654; /*/valor de resolucao AR = Passo * MicroPasso * re
 int dMinTimer = 500; /*/passo*/
 double dMaxSpeedAlt = 3844654;
 double dMaxSpeedAz = 3844654;
-int dReducao = 32;
+int dReducao = 16;
 
 
 //Variaveis de persistencia e estrutura de dados ----------------------------------------------------------------------------------------------------------------
