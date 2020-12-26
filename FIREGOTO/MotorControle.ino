@@ -37,14 +37,14 @@ void IniciaMotores()
   digitalWrite(MotorALT_Direcao, LOW);
   digitalWrite(MotorALT_Passo, LOW);
   digitalWrite(MotorALT_CS, HIGH);
-  digitalWrite(MotorALT_CFG2, HIGH);
-  digitalWrite(MotorALT_CFG1, HIGH);
+  digitalWrite(MotorALT_CFG2, LOW);
+  digitalWrite(MotorALT_CFG1, LOW);
   digitalWrite(MotorALT_Ativa, LOW);
   digitalWrite(MotorAZ_Direcao, LOW);
   digitalWrite(MotorAZ_Passo, LOW);
   digitalWrite(MotorAZ_CS, HIGH);
-  digitalWrite(MotorAZ_CFG2, HIGH);
-  digitalWrite(MotorAZ_CFG1, HIGH);
+  digitalWrite(MotorAZ_CFG2, LOW);
+  digitalWrite(MotorAZ_CFG1, LOW);
   digitalWrite(MotorAZ_Ativa, LOW);
 
   AltMotor.setMaxSpeed(dMaxSpeedAlt);

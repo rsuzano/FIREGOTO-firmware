@@ -237,7 +237,7 @@ void setup() {
     AltaM0 = HIGH;
   }
   if(Reducao==16) {
-    AltaM2 = HIGH;
+    AltaM2 = LOW;
     AltaM1 = LOW;
     AltaM0 = LOW;
   }
