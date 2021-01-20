@@ -1,6 +1,7 @@
 /*
- *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
-    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+ *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+ *  https://firegoto.com.br
+    Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as

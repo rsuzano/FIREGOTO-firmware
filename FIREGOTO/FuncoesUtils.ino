@@ -1,6 +1,7 @@
 /*
- *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
-    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+ *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+ *  https://firegoto.com.br
+    Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -339,5 +340,110 @@ int LeSinal()
       return (sinal);
 
     }
+  }
+}
+void EnderecoLCD()
+{
+  byte LCDerror, LCDaddress;
+  int LCDnDevices;
+
+  Serial.println("Buscando LCD...");
+
+  LCDnDevices = 0;
+  for(LCDaddress = 1; LCDaddress < 127; LCDaddress++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire1.beginTransmission(LCDaddress);
+    LCDerror = Wire1.endTransmission();
+
+    if (LCDerror == 0)
+    {
+      Serial.print("I2C encontrado no endereco 0x");
+      if (LCDaddress<16) 
+        Serial.print("0");
+      Serial.print(LCDaddress,HEX);
+      Serial.println("  !");
+
+      LCDnDevices++;
+    }
+    else if (LCDerror==4) 
+    {
+      Serial.print("Erro desconhecido no endereco 0x");
+      if (LCDaddress<16) 
+        Serial.print("0");
+      Serial.println(LCDaddress,HEX);
+    }    
+  }
+  if (LCDnDevices == 0)
+    Serial.println("Nenhum LCD encontrado\n");
+  else
+    Serial.println("Finalizado\n");
+
+  delay(1000);           // wait 5 seconds for next scan
+}
+
+
+
+void LCDClockDisplay() {
+  // digital clock display of the time
+  lcd.setCursor(0,1);
+  
+  if(day()<10){
+    lcd.print("0");
+    lcd.setCursor(1,1);
+    lcd.print(day());
+  }
+  else { 
+  lcd.print(day());
+  }
+  lcd.setCursor(2,1);
+  lcd.print("/");
+  lcd.setCursor(3,1);
+  if(month()<10){
+    lcd.print("0");
+    lcd.setCursor(4,1);
+    lcd.print(month());
+  }
+  else { 
+    lcd.print(month());
+  }
+  lcd.setCursor(5,1);
+  lcd.print("/");
+  lcd.setCursor(6,1);
+  lcd.print(year());
+  lcd.setCursor(10,1);
+  lcd.print(" ");
+  lcd.setCursor(11,1);
+  if(hour()<10){
+    lcd.print("0");
+    lcd.setCursor(12,1);
+    lcd.print(hour());
+  }
+  else {
+    lcd.print(hour());
+  }
+  lcd.setCursor(13,1);
+  lcd.print(":");
+  lcd.setCursor(14,1);
+  if(minute()<10){
+    lcd.print("0");
+    lcd.setCursor(15,1);
+    lcd.print(minute());
+  }
+  else {
+    lcd.print(minute());
+  }
+  lcd.setCursor(16,1);
+  lcd.print(":");
+  lcd.setCursor(17,1);
+  if(second()<10){
+    lcd.print("0");
+    lcd.setCursor(18,1);
+    lcd.print(second());
+  }
+  else {
+    lcd.print(second());
   }
 }

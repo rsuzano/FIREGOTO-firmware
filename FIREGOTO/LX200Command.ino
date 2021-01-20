@@ -1,6 +1,7 @@
 /*
- *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
-    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+ *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+ *  https://firegoto.com.br
+    Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -1363,3 +1364,27 @@ void getMinTimer() //:HGT#
   P-Parked, p-Not parked, F-Park Failed,
   I-park In progress, R-PEC Recorded 	:GU# 	Reply: sss#
 */
+void lcdALTmount() //:GA# Get Telescope Altitude Returns: sDD*MM# or sDD*MM'SS#
+{
+  char str[9];
+  int Ddeg, Min, Sec;
+  Ddeg = (int)DecDegtoDeg(eixoAltGrausDecimal);
+  Min = (int)DecDegtoMin(eixoAltGrausDecimal);
+  Sec = (int)DecDegtoSec(eixoAltGrausDecimal);
+  if (Ddeg < 0) {
+    sprintf(str, "-%02d*%02d:%02d#", int(Ddeg), int(Min), int(Sec));
+  } else {
+    sprintf(str, "+%02d*%02d:%02d#", int(Ddeg), int(Min), int(Sec));
+  }
+  str[3] = 223;
+  lcd.print(str);
+
+}
+
+void lcdAZmount()
+{
+  char str[10];
+  sprintf(str, "%03d*%02d:%02d#", int(DecDegtoDeg(eixoAzGrausDecimal)), int(DecDegtoMin(eixoAzGrausDecimal)), int(DecDegtoSec(eixoAzGrausDecimal)));
+  str[3] = 223;
+  lcd.print(str);
+}

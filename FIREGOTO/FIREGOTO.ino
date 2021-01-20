@@ -1,6 +1,7 @@
 /*
- *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
-    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+ *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+ *  https://firegoto.com.br
+    Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -23,9 +24,38 @@
 #include <TimeLib.h>
 #include <DueTimer.h>
 #include <DueFlashStorage.h>
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h> 
 
 //DEBUG
 int flagDebug = 0;
+
+//2. Pinos Joystick
+#define xPin     A0   
+#define yPin     A1   
+#define kPin     A2   
+
+//Menu e joystick
+int tCount1;
+bool refresh;//lcd clear On/Off
+//leerJoystick
+int joyRead;
+int joyPos; 
+int lastJoyPos;
+long lastDebounceTime = 0; 
+long debounceDelay = 70;                 //user define
+//Control Joystick
+bool PQCP;
+bool editMode;
+//sistema de menus
+int mNivel1;  
+int mNivel2;  
+//editmode
+byte n[19];
+int lastN;
+int lcdX;
+//int lcdY;
+bool exiT;
 
 
 //Criacao dos motores
@@ -46,6 +76,9 @@ int flagDebug = 0;
 #define MotorAZ_M0 50
 #define MotorAZ_Ativa 52
 
+
+LiquidCrystal_I2C lcd(0x27,20,4);
+ 
 
 AccelStepper AltMotor(AccelStepper::DRIVER, MotorALT_Passo, MotorALT_Direcao);
 AccelStepper AzMotor(AccelStepper::DRIVER, MotorAZ_Passo, MotorAZ_Direcao);
@@ -170,12 +203,19 @@ double Microssegundo = 0 , SegundoFracao = 0.0, MilissegundoSeg = 0.0, Milissegu
 
 
 void setup() {
+  //Pinos Led RGB
   pinMode(LedR, OUTPUT);
   pinMode(LedG, OUTPUT);
   pinMode(LedB, OUTPUT);
   digitalWrite(LedR, ledStateR);
   digitalWrite(LedB, ledStateB);
   digitalWrite(LedG, ledStateG);
+  //Pinos Joystick
+  pinMode(xPin, INPUT);
+  pinMode(yPin, INPUT);
+  pinMode(kPin, INPUT_PULLUP);
+
+  
 
 
 
@@ -189,6 +229,7 @@ void setup() {
   Serial.begin(9600);
   Serial3.begin(9600);
   SerialUSB.begin(9600);
+  Wire1.begin();
 
 
 
@@ -207,7 +248,7 @@ void setup() {
     configuration.longitude = -49.20;
     configuration.SentidoDEC = 0;
     configuration.SentidoRA = 0;
-    setTime(22, 00, 00, 23, 03, 2015);
+    setTime(00, 00, 00, 01, 01, 2021);
     MilissegundoSeg = second();
     configuration.DataHora = now();
     configuration.UTC = -2;
@@ -278,6 +319,11 @@ void setup() {
   ResolucaoeixoAzGrausDecimal = 360.0 / MaxPassoAz ;
   ResolucaoeixoAltPassoGrau = (MaxPassoAlt  / 360.0);
   ResolucaoeixoAzPassoGrau = (MaxPassoAz  / 360.0);
+  //Instruções do LCD
+  //lcd.init();
+  lcd.begin(Wire1); 
+  lcd.backlight();
+  lcd.clear();
 }
 
 
@@ -368,5 +414,6 @@ void loop() {
     previousMillis = millis();
   }
   AlteraMicroSeg();
-
+  controlJoystick();
+  menu();
 }

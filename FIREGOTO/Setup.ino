@@ -1,6 +1,7 @@
 /*
- *   FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
-    Copyright (C) 2020  Rangel Perez Sardinha / Marcos Lorensini
+ *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+ *  https://firegoto.com.br
+    Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -18,9 +19,11 @@
  */
 void RotinadeSetup() //:HSETUPON#
 {
-  SerialPrint("\n ######################################################################### \n");
+  SerialPrint("\n ######################################################################### \n\n");
   if (setupflag == 0)
   {
+    lcd.setCursor(0,1);
+    lcd.print("Executando o Setup  ");
     SerialPrint(" \n Rotina inicial de Setup \n ");
     digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
@@ -31,6 +34,7 @@ void RotinadeSetup() //:HSETUPON#
   }
   setupflag = 2;
 
+  EnderecoLCD();
   SerialPrint(" \n O valor atual timer e: ");
   SerialPrint(String(MinTimer - 200));
   SerialPrint(" (:HST00000# -> Quanto menor mais rapido ate o limite do motor ambos motores) \n");
@@ -94,5 +98,7 @@ void RotinadeSetup() //:HSETUPON#
 
 void RotinadeSetupOff() //:HSETUPOFF#
 {
+  lcd.setCursor(0,1);
+  lcd.print("SETUP finalizado    ");
   setupflag = 0;
 }
