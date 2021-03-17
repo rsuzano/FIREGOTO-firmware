@@ -385,7 +385,8 @@ void setLocalData() //:SCMM/DD/YY# Change Handbox Date to MM/DD/YY #:SC 03/20/14
   configurationFromFlash.DataHora =  now();
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+   EEPROM_writeAnything(4,&configurationFromFlash);
+  EEPROM_writeAnything(4,b2);
 }
 
 void printDataLocal() //Get date 	:GC# 	 Reply: MM/DD/YY#
@@ -424,7 +425,7 @@ void setLocalHora()//:SLHH:MM:SS#  Set the local Time
   configurationFromFlash.DataHora =  now();
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
 }
 
 void PrintLocalHora()//:Get time (Local) 	:GLHH:MM:SS#	Reply: HH:MM:SS#
@@ -572,7 +573,7 @@ void setlatitude() //:StsDD*MM# Sets the current site latitude to sDD*MM# Return
   SerialPrint("1");
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
 }
 
 void printlatitude()// :Gt# Get Current Site Latitude Returns: sDD*MM# The latitude of the current site. Positive inplies North latitude.
@@ -611,7 +612,7 @@ void setlongitude() //:SgsDDD*MM# Set current site's longitude to DDD*MM an ASCI
   SerialPrint("1");
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
 }
 
 void printlongitude() // Get Current Site Longitude Returns: sDDD*MM#
@@ -1072,7 +1073,7 @@ void setReducao()  //:HSRD000#
   // write configuration struct to flash at adress 4
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
   SerialPrint("1 - Steps for stepper motors OK");
 
 }
@@ -1095,7 +1096,7 @@ void setMaxPassoAlt()  //:HSAL00000000#
   // write configuration struct to flash at adress 4
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
   SerialPrint("1 - OK Set AL microsteps");
 
 }
@@ -1117,7 +1118,7 @@ void setMaxPassoAz() //:HSAZ00000000#
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
   SerialPrint("1 - OK Set AZ microsteps");
 
 }
@@ -1135,9 +1136,13 @@ void setMinTimer() //:HST00000#
   MinTimer = configurationFromFlash.MinTimer ;  //valor minimo
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
-  Timer3.stop();
-  Timer3.start(MinTimer);
+  EEPROM_writeAnything(4,b2);
+  timerEnd(timer);
+  timerAlarmWrite(timer,MinTimer,true);
+  timerAlarmEnable(timer);
+  
+  //Timer3.stop();
+  //Timer3.start(MinTimer);
 
   SerialPrint("1 - OK Set timer");
 }
@@ -1151,7 +1156,7 @@ void setSentidoRA() //:HSSRA0#
   SentidoRA = configurationFromFlash.SentidoRA;
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
   SentidodosMotores();
   SerialPrint("1 - OK Set RA Direction");
 }
@@ -1164,7 +1169,7 @@ void setSentidoDEC() //:HSSDEC0#
   SentidoDEC = configurationFromFlash.SentidoDEC;
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  EEPROM_writeAnything(4,b2);
   SentidodosMotores();
   SerialPrint("1 - OK Set DEC Direction");
 }

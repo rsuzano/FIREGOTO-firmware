@@ -22,8 +22,10 @@
 #include <math.h>
 #include <Time.h>
 #include <TimeLib.h>
-#include <DueTimer.h>
-#include <DueFlashStorage.h>
+//#include <DueTimer.h>
+//#include <DueFlashStorage.h>
+#include <EEPROM.h>
+#include "EEPROMAnything.h"
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h> 
 
@@ -31,9 +33,9 @@
 int flagDebug = 0;
 
 //2. Pinos Joystick
-#define xPin     A0   
-#define yPin     A1   
-#define kPin     A2   
+#define xPin     32   
+#define yPin     33   
+#define kPin     34
 
 //Menu e joystick
 int tCount1;
@@ -59,22 +61,22 @@ bool exiT;
 
 
 //Criacao dos motores
-#define MotorALT_Direcao 22
-#define MotorALT_Passo 24
-#define MotorALT_Sleep 26
-#define MotorALT_Reset 28
-#define MotorALT_M2 30
-#define MotorALT_M1 32
-#define MotorALT_M0 34
-#define MotorALT_Ativa 36
-#define MotorAZ_Direcao 38
-#define MotorAZ_Passo 40
-#define MotorAZ_Sleep 42
-#define MotorAZ_Reset 44
-#define MotorAZ_M2 46
-#define MotorAZ_M1 48
-#define MotorAZ_M0 50
-#define MotorAZ_Ativa 52
+#define MotorALT_Direcao 26
+#define MotorALT_Passo 27
+#define MotorALT_Sleep 12
+#define MotorALT_Reset 12
+#define MotorALT_M2 5
+#define MotorALT_M1 14
+#define MotorALT_M0 13
+#define MotorALT_Ativa 4
+#define MotorAZ_Direcao 19
+#define MotorAZ_Passo 18
+#define MotorAZ_Sleep 12
+#define MotorAZ_Reset 12
+#define MotorAZ_M2 23
+#define MotorAZ_M1 14
+#define MotorAZ_M0 13
+#define MotorAZ_Ativa 4
 
 
 LiquidCrystal_I2C lcd(0x27,20,4);
@@ -82,13 +84,14 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 
 AccelStepper AltMotor(AccelStepper::DRIVER, MotorALT_Passo, MotorALT_Direcao);
 AccelStepper AzMotor(AccelStepper::DRIVER, MotorAZ_Passo, MotorAZ_Direcao);
+
 int accel = 1;
 
 
 //LEDs
-#define LedB 49
-#define LedR 53
-#define LedG 51
+#define LedB 32
+#define LedR 34
+#define LedG 35
 int ledStateR = LOW;
 int ledStateB = LOW;
 int ledStateG = LOW;
@@ -101,10 +104,10 @@ int dMinTimer = 500; /*/passo*/
 double dMaxSpeedAlt = 3844654;
 double dMaxSpeedAz = 3844654;
 int dReducao = 32;
-
-
+hw_timer_t * timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+boolean callRunMotor = false;
 //Variaveis de persistencia e estrutura de dados ----------------------------------------------------------------------------------------------------------------
-DueFlashStorage dueFlashStorage;
 
 // The struct of the configuration.
 struct Configuration {
@@ -203,6 +206,7 @@ double Microssegundo = 0 , SegundoFracao = 0.0, MilissegundoSeg = 0.0, Milissegu
 
 
 void setup() {
+  
   //Pinos Led RGB
   pinMode(LedR, OUTPUT);
   pinMode(LedG, OUTPUT);
@@ -214,7 +218,7 @@ void setup() {
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
   pinMode(kPin, INPUT_PULLUP);
-
+  
   
 
 
@@ -227,15 +231,15 @@ void setup() {
   digitalWrite(LedR, ledStateR);
 
   Serial.begin(9600);
-  Serial3.begin(9600);
-  SerialUSB.begin(9600);
+  Serial1.begin(9600);
+  Serial2.begin(9600);
   Wire1.begin();
-
-
+  
+//EEPROM.begin(4);
 
   /* Flash is erased every time new code is uploaded. Write the default configuration to flash if first time */
   // running for the first time?
-  uint8_t codeRunningForTheFirstTime = dueFlashStorage.read(0); // flash bytes will be 255 at first run
+  uint8_t codeRunningForTheFirstTime = EEPROM.read(0); // flash bytes will be 255 at first run
   Serial.print("Primeira Execucao: ");
   if (codeRunningForTheFirstTime) {
     Serial.println("yes");
@@ -256,9 +260,10 @@ void setup() {
     // write configuration struct to flash at adress 4
     byte b2[sizeof(Configuration)]; // create byte array to store the struct
     memcpy(b2, &configuration, sizeof(Configuration)); // copy the struct to the byte array
-    dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+    EEPROM_writeAnything(4,&configuration);
+    EEPROM_writeAnything(4,b2);
     // write 0 to address 0 to indicate that it is not the first time running anymore
-    dueFlashStorage.write(0, 0);
+    EEPROM.write(0, 0);
   }
   else {
     Serial.println("no");
@@ -266,8 +271,9 @@ void setup() {
 
 
   
-  byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
-  memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
+  //byte* b;// EEPROM.read(4); // byte array which is read from flash at adress 4
+  EEPROM_readAnything(4,configurationFromFlash);
+  //memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
   Reducao = configurationFromFlash.Reducao;
   if(Reducao==32) {
     AltaM2 = HIGH;
@@ -308,6 +314,8 @@ void setup() {
   setTime(configurationFromFlash.DataHora);
   Serial.print("Bem vindo ao FIREGOTO para setup inicial digitar :HSETUPON# \n");
   delay (2000);
+
+  
   IniciaMotores();
   SentidodosMotores();
   SerialPrint("00:00:00#"); //RTA para leitura do driver ASCOM da MEADE autostar I
@@ -321,7 +329,7 @@ void setup() {
   ResolucaoeixoAzPassoGrau = (MaxPassoAz  / 360.0);
   //Instruções do LCD
   //lcd.init();
-  lcd.begin(Wire1); 
+  lcd.begin(); 
   lcd.backlight();
   lcd.clear();
 }
@@ -329,6 +337,11 @@ void setup() {
 
 
 void loop() {
+  if (callRunMotor) {
+    //Serial.println("callRunMotor=true");
+    runmotor();
+    callRunMotor = false;
+  }
   if (ledStateR == LOW) {
     ledStateR = HIGH;
   } else {
@@ -336,7 +349,7 @@ void loop() {
   }
   currentMillis = millis();
   CalcPosicaoPasso();
-  if (SerialUSB.available() || Serial.available() || Serial3.available()) serialEvent();
+  if (Serial2.available() || Serial.available() || Serial1.available()) serialEvent();
 
   if ((numCommand != numCommandexec) && (flagCommand == 0))
   {
@@ -415,5 +428,5 @@ void loop() {
   }
   AlteraMicroSeg();
   controlJoystick();
-  menu();
+  //menu();
 }

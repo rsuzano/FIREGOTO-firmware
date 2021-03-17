@@ -52,17 +52,17 @@
   }*/
 void SerialPrint(String str)
 {
-  Serial.print(str);
-  Serial3.print(str);
-  SerialUSB.print(str);
+  Serial.println(str);
+  Serial1.println(str);
+  Serial2.println(str);
   ledStateB = HIGH;
 }
 
 /*
   void serialEvent3() {
-  while (Serial3.available()) {
+  while (Serial1.available()) {
     // get the new byte:
-    char inChar = (char)Serial3.read();
+    char inChar = (char)Serial1.read();
     if (inChar != ' ' )
     {
       pontBuffer = pontBuffer + 1;
@@ -113,9 +113,9 @@ void serialEvent() {
     }
   }
 
-  while (Serial3.available()) {
+  while (Serial1.available()) {
     // get the new byte:
-    char inChar = (char)Serial3.read();
+    char inChar = (char)Serial1.read();
     if (inChar != ' ' )
     {
       Command[numCommand][pontBuffer] = inChar;
@@ -134,9 +134,9 @@ void serialEvent() {
     }
   }
 
-  while (SerialUSB.available()) {
+  while (Serial2.available()) {
     // get the new byte:
-    char inChar = (char)SerialUSB.read();
+    char inChar = (char)Serial2.read();
     if (inChar != ' ' )
     {
       Command[numCommand][pontBuffer] = inChar;
@@ -169,6 +169,6 @@ void SerialPrintDebug(String str)
   if (flagDebug == 1)
   {
     Serial.println(str);
-    // SerialUSB.println(str);
+    // Serial2.println(str);
   }
 }

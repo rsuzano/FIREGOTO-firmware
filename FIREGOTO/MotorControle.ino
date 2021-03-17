@@ -17,6 +17,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
+void IRAM_ATTR onTimer(){
+ portENTER_CRITICAL_ISR(&timerMux);
+ callRunMotor = true;
+ portEXIT_CRITICAL_ISR(&timerMux);
+}
 void IniciaMotores()
 {
   //Iniciar as variaveis do motor de passo
@@ -54,13 +59,19 @@ void IniciaMotores()
   digitalWrite(MotorAZ_M1, HIGH );
   digitalWrite(MotorAZ_M0, HIGH);
   digitalWrite(MotorAZ_Ativa, LOW);
-
+  dReducao = 32;
+  //Serial.print("MinTimer=>");
+  //Serial.println(MinTimer);
   AltMotor.setMaxSpeed(dMaxSpeedAlt);
   AltMotor.setAcceleration(dReducao);
   AzMotor.setMaxSpeed(dMaxSpeedAz);
   AzMotor.setAcceleration(dReducao);
-  Timer3.start(MinTimer);
-  Timer3.attachInterrupt(runmotor);
+  timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer, &onTimer, true);
+  timerAlarmWrite(timer, 500, true);
+  timerAlarmEnable(timer);
+  //Timer3.start(MinTimer);
+  //Timer3.attachInterrupt(runmotor);
 
 }
 
@@ -89,8 +100,10 @@ void SentidodosMotores()
 
 }
 
+
 void runmotor ()
 {
+ // Serial.println("Chamou runMotor");
   if (setupflag == 0)
   {
     AltMotor.run();
