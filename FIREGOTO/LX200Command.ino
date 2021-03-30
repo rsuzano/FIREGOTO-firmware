@@ -689,11 +689,11 @@ void printFirmwareTime() //Get firmware time 	:GVT# 	Reply: HH:MM:SS#
 }
 void printFirmwareNumber() //Get firmware number 	:GVN# 	Reply: 0.99a5#
 {
-  SerialPrint("0.99r11#");
+  SerialPrint("1.0.1#");
 }
 void printFirmwareNamne() //Get firmware name 	:GVP# 	Reply: On-Step#
 {
-  SerialPrint("On-Step#");
+  SerialPrint("FireGoTo#");
 
 }
 void printAlturaLimite() //:Gh# Get High Limit Returns: sDD*

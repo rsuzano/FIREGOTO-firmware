@@ -56,6 +56,7 @@ int lastN;
 int lcdX;
 //int lcdY;
 bool exiT;
+bool moveRADEC;
 
 
 //Criacao dos motores
@@ -320,10 +321,10 @@ void setup() {
   ResolucaoeixoAltPassoGrau = (MaxPassoAlt  / 360.0);
   ResolucaoeixoAzPassoGrau = (MaxPassoAz  / 360.0);
   //Instruções do LCD
-  //lcd.init();
-  lcd.begin(Wire1); 
-  lcd.backlight();
-  lcd.clear();
+
+  //lcd.begin(Wire1); 
+  //lcd.backlight();
+  //lcd.clear();
 }
 
 
@@ -414,6 +415,6 @@ void loop() {
     previousMillis = millis();
   }
   AlteraMicroSeg();
-  controlJoystick();
-  menu();
+  //controlJoystick();
+  //menu();
 }

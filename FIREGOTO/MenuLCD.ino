@@ -154,6 +154,20 @@ void menu3(){
   if (refresh){lcd.clear();refresh=0;}
   lcd.setCursor(0,0);
   lcd.print(">Mover RA e DEC");
+    while(editMode){
+    moveRADEC = 1;
+    controlJoystick();
+    lcd.setCursor(0,2);
+    lcd.print("RA:  ");
+    lcd.setCursor(4,2);
+    lcdALTmount();
+    lcd.setCursor(0,3);
+    lcd.print("DEC: ");
+    lcd.setCursor(4,3);
+    lcdAZmount();
+  }
+  //
+  //moverMotores();
 }
 //-------------------------------------------------2.1
 
@@ -176,15 +190,75 @@ void controlJoystick(){
     if (joyPos==5){editMode=!editMode;}
     switch (editMode){
        case 1: 
-          lcd.blink();
-          if (joyPos==4&&n[lcdX]<9){n[lcdX]++;   //cima
+          if(moveRADEC){
+            if (joyPos==4){movenorte();   //cima
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Norte");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
               refresh=0;}
-          if (joyPos==3&&n[lcdX]>0){n[lcdX]--;   //baixo
-              refresh=0;} 
-          if (joyPos==1&&lcdX<19){lcdX++;        //direita
-            refresh=0;}
-          if (joyPos==2&&lcdX>0){lcdX--;         //esquerda
-           refresh=0;}
+            if (joyPos==3){movesul();   //baixo
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Sul");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}
+            if (joyPos==1){moveleste();        //direita
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Leste");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}
+            if (joyPos==2){moveoeste();         //esquerda
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Oeste");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}
+            if (joyPos==6){moveoeste();movenorte();       //noroeste
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Noroeste");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}
+            if (joyPos==7){moveleste();movenorte();       //nordeste
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Nordeste");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}
+            if (joyPos==8){moveleste();movesul();       //noroeste
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Sudeste");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}
+            if (joyPos==9){moveoeste();movesul();       //nordeste
+              lcd.setCursor(0,1);
+              lcd.print("Movendo Sudoeste");
+              delay(150);
+              lcd.setCursor(0,1);
+              lcd.print("                    ");  
+              refresh=0;}              
+          }
+          else {
+            lcd.blink();
+              if (joyPos==4&&n[lcdX]<9){n[lcdX]++;   //cima
+                  refresh=0;}
+              if (joyPos==3&&n[lcdX]>0){n[lcdX]--;   //baixo
+                  refresh=0;} 
+              if (joyPos==1&&lcdX<19){lcdX++;        //direita
+                  refresh=0;}
+              if (joyPos==2&&lcdX>0){lcdX--;         //esquerda
+                  refresh=0;}
+          }
         break;
         case 0:
           lcd.noBlink();
@@ -205,10 +279,14 @@ int leeJoystick(){
   int x = analogRead(xPin);
   int y = analogRead(yPin);
   int k = digitalRead(kPin);
-    if(x>900){joyRead=1;        //x+
-    }else if(x<100){joyRead=2;  //x-
-    }else if(y>900){joyRead=3;  //y+
-    }else if(y<100){joyRead=4;  //y-
+    if(x>900&&y>500&&y<600){joyRead=1;        //x+
+    }else if(x<100&&y>500&&y<600){joyRead=2;  //x-
+    }else if(y>900&&x>500&&x<600){joyRead=3;  //y+
+    }else if(y<100&&x>500&&x<600){joyRead=4;  //y-
+    }else if(x<100&&y<100){joyRead=6;
+    }else if(x>900&&y<100){joyRead=7;
+    }else if(x>900&&y>900){joyRead=8;
+    }else if(x<100&&y>900){joyRead=9;
     }else if(!k){joyRead=5;
     }else{joyRead=0;}
 
@@ -217,9 +295,21 @@ int leeJoystick(){
     joyPos=joyRead;
     if(!PQCP){PQCP=1;}
     }
-  if(((millis() - lastDebounceTime) > (5*debounceDelay))&&(joyPos==3||joyPos==4)){
+  if(((millis() - lastDebounceTime) > (5*debounceDelay))){
     joyPos=joyRead;                     //repeat time only for UP/DOWN
     if(!PQCP){PQCP=1;}
     }
   lastJoyPos=joyRead;
 }
+
+
+/* MAPA DE DIRECOES
+ *      y-      
+    NO  N  NE     
+      6 4 7   
+ x- O 2 5 1 L x+
+      9 3 8   
+    SO  S  SE     
+        y+        
+ * 
+ */
