@@ -512,7 +512,7 @@ void printAZmount()
 
 void printALTmount() //:GA# Get Telescope Altitude Returns: sDD*MM# or sDD*MM'SS#
 {
-  char str[9];
+  char str[19];
   int Ddeg, Min, Sec;
   Ddeg = (int)DecDegtoDeg(eixoAltGrausDecimal);
   Min = (int)DecDegtoMin(eixoAltGrausDecimal);
@@ -531,7 +531,7 @@ void printRAmount() //:GR# Get Telescope RA Returns: HH:MM.T# or HH:MM:SS#
   int HH = DecDeg2HoursHH(RAmount);
   int MM = DecDeg2HoursMM(RAmount);
   int SS = DecDeg2HoursSEC(RAmount);
-  char str[9];
+  char str[19];
   sprintf(str, "%02d:%02d:%02d#", int(HH), int(MM), int(SS));
   SerialPrint(str);
 }
@@ -541,7 +541,7 @@ void printDECmount() //:GD# Get Telescope Declination. Returns: sDD*MM# or sDD*M
   int Ddeg = abs((int)DecDegtoDeg(DECmount));
   int Min = abs((int)DecDegtoMin(DECmount));
   int Sec = abs((int)DecDegtoSec(DECmount));
-  char str[9];
+  char str[19];
   if (DECmount < 0) {
     sprintf(str, "-%02d*%02d:%02d#", int(Ddeg), int(Min), int(Sec));
   } else {

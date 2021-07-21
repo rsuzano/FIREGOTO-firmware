@@ -26,16 +26,16 @@
 //#include <DueFlashStorage.h>
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
-#include <Wire.h> 
+//#include <Wire.h> 
 #include <LiquidCrystal_I2C.h> 
 
 //DEBUG
 int flagDebug = 0;
 
 //2. Pinos Joystick
-#define xPin     32   
-#define yPin     33   
-#define kPin     34
+#define xPin     -1//32   
+#define yPin     -1//33   
+#define kPin     -1//34
 
 //Menu e joystick
 int tCount1;
@@ -63,23 +63,23 @@ bool exiT;
 //Criacao dos motores
 #define MotorALT_Direcao 26
 #define MotorALT_Passo 27
-#define MotorALT_Sleep 12
-#define MotorALT_Reset 12
-#define MotorALT_M2 5
+#define MotorALT_Sleep -1//12
+#define MotorALT_Reset -1//12
+#define MotorALT_M2 -1
 #define MotorALT_M1 14
 #define MotorALT_M0 13
-#define MotorALT_Ativa 4
-#define MotorAZ_Direcao 19
+#define MotorALT_Ativa 12
+#define MotorAZ_Direcao 0
 #define MotorAZ_Passo 18
-#define MotorAZ_Sleep 12
-#define MotorAZ_Reset 12
-#define MotorAZ_M2 23
+#define MotorAZ_Sleep -1//12
+#define MotorAZ_Reset -1//12
+#define MotorAZ_M2 -1
 #define MotorAZ_M1 14
 #define MotorAZ_M0 13
-#define MotorAZ_Ativa 4
+#define MotorAZ_Ativa 12
 
 
-LiquidCrystal_I2C lcd(0x27,20,4);
+LiquidCrystal_I2C lcd(0x27,-1,-1);
  
 
 AccelStepper AltMotor(AccelStepper::DRIVER, MotorALT_Passo, MotorALT_Direcao);
@@ -89,9 +89,9 @@ int accel = 1;
 
 
 //LEDs
-#define LedB 32
-#define LedR 34
-#define LedG 35
+#define LedB 25
+#define LedR 25
+#define LedG 25
 int ledStateR = LOW;
 int ledStateB = LOW;
 int ledStateG = LOW;
@@ -101,12 +101,13 @@ int ledStateG = LOW;
 double dMaxPassoAlt = 3844654; /* //valor de resolucao AR = Passo * MicroPasso * reducao ex(200*16*402)/4    (16*200*(117/11)*56)*/
 double dMaxPassoAz = 3844654; /*/valor de resolucao AR = Passo * MicroPasso * reducao ex(200*16*402)   (16*200*(118/11)*57)*/
 int dMinTimer = 500; /*/passo*/
-double dMaxSpeedAlt = 3844654;
-double dMaxSpeedAz = 3844654;
+double dMaxSpeedAlt = 1000;
+double dMaxSpeedAz = 1000;
 int dReducao = 32;
 hw_timer_t * timer = NULL;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-boolean callRunMotor = false;
+volatile SemaphoreHandle_t timerSemaphore;
+volatile boolean callRunMotor = false;
 //Variaveis de persistencia e estrutura de dados ----------------------------------------------------------------------------------------------------------------
 
 // The struct of the configuration.
@@ -129,14 +130,14 @@ struct Configuration {
 Configuration configuration;
 Configuration configurationFromFlash; // create a temporary struct
 
-int Reducao;
-int MaxPassoAlt;
-int MaxPassoAz;
+int Reducao = dReducao;
+int MaxPassoAlt = dMaxPassoAlt;
+int MaxPassoAz = dMaxPassoAz;
 int MaxSpeedAz = dMaxSpeedAz;
 int MaxSpeedAlt = dMaxSpeedAlt;
 int SentidoDEC = 0;
 int SentidoRA = 0;
-int MinTimer;
+int MinTimer = dMinTimer;
 int AltaM2;
 int AltaM1;
 int AltaM0;
@@ -231,15 +232,16 @@ void setup() {
   digitalWrite(LedR, ledStateR);
 
   Serial.begin(9600);
-  Serial1.begin(9600);
-  Serial2.begin(9600);
-  Wire1.begin();
+  //Serial1.begin(9600);
+  //Serial2.begin(9600);
+  //Wire1.begin();
   
-//EEPROM.begin(4);
+  //EEPROM.begin(1);
 
   /* Flash is erased every time new code is uploaded. Write the default configuration to flash if first time */
   // running for the first time?
-  uint8_t codeRunningForTheFirstTime = EEPROM.read(0); // flash bytes will be 255 at first run
+  uint8_t codeRunningForTheFirstTime;
+  EEPROM_readAnything(0, codeRunningForTheFirstTime);
   Serial.print("Primeira Execucao: ");
   if (codeRunningForTheFirstTime) {
     Serial.println("yes");
@@ -263,7 +265,7 @@ void setup() {
     EEPROM_writeAnything(4,&configuration);
     EEPROM_writeAnything(4,b2);
     // write 0 to address 0 to indicate that it is not the first time running anymore
-    EEPROM.write(0, 0);
+    EEPROM_writeAnything(0, 0);
   }
   else {
     Serial.println("no");
@@ -274,29 +276,31 @@ void setup() {
   //byte* b;// EEPROM.read(4); // byte array which is read from flash at adress 4
   EEPROM_readAnything(4,configurationFromFlash);
   //memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
-  Reducao = configurationFromFlash.Reducao;
+  Serial.println(">>>>>>>>>>>>>>>configurationFromFlash.Reducao:");
+  Serial.println(configurationFromFlash.Reducao);
+  Reducao = 16;//configurationFromFlash.Reducao;
   if(Reducao==32) {
-    AltaM2 = HIGH;
+    //AltaM2 = HIGH;
     AltaM1 = LOW;
     AltaM0 = HIGH;
   }
   if(Reducao==16) {
-    AltaM2 = HIGH;
+    //AltaM2 = HIGH;
     AltaM1 = LOW;
     AltaM0 = LOW;
   }
   if(Reducao==8) {
-    AltaM2 = LOW;
+    //AltaM2 = LOW;
     AltaM1 = HIGH;
     AltaM0 = HIGH;
   }
   if(Reducao==4) {
-    AltaM2 = LOW;
+    //AltaM2 = LOW;
     AltaM1 = HIGH;
     AltaM0 = LOW;
   }
   if(Reducao==2) {
-    AltaM2 = LOW;
+    //AltaM2 = LOW;
     AltaM1 = LOW;
     AltaM0 = HIGH;
   }
@@ -312,6 +316,7 @@ void setup() {
   SentidoDEC = configurationFromFlash.SentidoDEC;
   SentidoRA = configurationFromFlash.SentidoRA;
   setTime(configurationFromFlash.DataHora);
+  delay (1000);
   Serial.print("Bem vindo ao FIREGOTO para setup inicial digitar :HSETUPON# \n");
   delay (2000);
 
@@ -329,19 +334,18 @@ void setup() {
   ResolucaoeixoAzPassoGrau = (MaxPassoAz  / 360.0);
   //Instruções do LCD
   //lcd.init();
-  lcd.begin(); 
-  lcd.backlight();
-  lcd.clear();
+ // lcd.begin(); 
+ // lcd.backlight();
+ // lcd.clear();
 }
 
 
 
 void loop() {
-  if (callRunMotor) {
-    //Serial.println("callRunMotor=true");
-    runmotor();
-    callRunMotor = false;
-  }
+   AltMotor.moveTo((int)5000);
+  AzMotor.moveTo((int)5000);
+  AltMotor.runSpeed();
+    AzMotor.runSpeed();
   if (ledStateR == LOW) {
     ledStateR = HIGH;
   } else {
@@ -349,7 +353,7 @@ void loop() {
   }
   currentMillis = millis();
   CalcPosicaoPasso();
-  if (Serial2.available() || Serial.available() || Serial1.available()) serialEvent();
+  //if (Serial2.available() || Serial.available() || Serial1.available()) serialEvent();
 
   if ((numCommand != numCommandexec) && (flagCommand == 0))
   {
@@ -393,7 +397,7 @@ void loop() {
 
   // print the string when a newline arrives:
   // protegemount();
-
+  ativaacom =1;
   if (ativaacom != 0)
   {
     if (previousMillis < currentMillis)
@@ -428,5 +432,11 @@ void loop() {
   }
   AlteraMicroSeg();
   controlJoystick();
+  if (xSemaphoreTake(timerSemaphore, 0) == pdTRUE){
+    portENTER_CRITICAL(&timerMux);
+    callRunMotor = false;
+    portEXIT_CRITICAL(&timerMux);
+    runmotor();
+  }
   //menu();
 }

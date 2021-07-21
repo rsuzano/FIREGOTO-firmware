@@ -20,7 +20,28 @@
 void IRAM_ATTR onTimer(){
  portENTER_CRITICAL_ISR(&timerMux);
  callRunMotor = true;
- portEXIT_CRITICAL_ISR(&timerMux);
+  if (SentidoDEC == 1)
+  {
+    AzMotor.setPinsInverted(true);
+  }
+  else
+  {
+    AzMotor.setPinsInverted(false);
+
+  }
+  if (SentidoRA == 1)
+  {
+    AltMotor.setPinsInverted(true);
+
+  }
+  else
+  {
+    AltMotor.setPinsInverted(false);
+
+  }
+
+   portEXIT_CRITICAL_ISR(&timerMux);
+   xSemaphoreGiveFromISR(timerSemaphore, NULL);
 }
 void IniciaMotores()
 {
@@ -29,7 +50,7 @@ void IniciaMotores()
   pinMode(MotorALT_Passo, OUTPUT);
   pinMode(MotorALT_Sleep, OUTPUT);
   pinMode(MotorALT_Reset, OUTPUT);
-  pinMode(MotorALT_M2, OUTPUT);
+  //pinMode(MotorALT_M2, OUTPUT);
   pinMode(MotorALT_M1, OUTPUT);
   pinMode(MotorALT_M0, OUTPUT);
   pinMode(MotorALT_Ativa, OUTPUT);
@@ -47,7 +68,7 @@ void IniciaMotores()
   digitalWrite(MotorALT_Passo, LOW);
   digitalWrite(MotorALT_Sleep, HIGH);
   digitalWrite(MotorALT_Reset, HIGH);
-  digitalWrite(MotorALT_M2, HIGH);
+  //digitalWrite(MotorALT_M2, HIGH);
   digitalWrite(MotorALT_M1, HIGH);
   digitalWrite(MotorALT_M0, HIGH);
   digitalWrite(MotorALT_Ativa, LOW);
@@ -55,21 +76,23 @@ void IniciaMotores()
   digitalWrite(MotorAZ_Passo, LOW);
   digitalWrite(MotorAZ_Sleep, HIGH);
   digitalWrite(MotorAZ_Reset, HIGH);
-  digitalWrite(MotorAZ_M2, HIGH);
+  //digitalWrite(MotorAZ_M2, HIGH);
   digitalWrite(MotorAZ_M1, HIGH );
   digitalWrite(MotorAZ_M0, HIGH);
   digitalWrite(MotorAZ_Ativa, LOW);
-  dReducao = 32;
-  //Serial.print("MinTimer=>");
-  //Serial.println(MinTimer);
+  dReducao = 16;
+  Serial.print("MinTimer=>");
+  Serial.println(MinTimer);
   AltMotor.setMaxSpeed(dMaxSpeedAlt);
   AltMotor.setAcceleration(dReducao);
   AzMotor.setMaxSpeed(dMaxSpeedAz);
   AzMotor.setAcceleration(dReducao);
+  timerSemaphore = xSemaphoreCreateBinary();
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
-  timerAlarmWrite(timer, 500, true);
+  timerAlarmWrite(timer, 1000000, true);
   timerAlarmEnable(timer);
+  
   //Timer3.start(MinTimer);
   //Timer3.attachInterrupt(runmotor);
 
@@ -103,7 +126,7 @@ void SentidodosMotores()
 
 void runmotor ()
 {
- // Serial.println("Chamou runMotor");
+   
   if (setupflag == 0)
   {
     AltMotor.run();
@@ -207,10 +230,10 @@ void BaixaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz / dReducao;
     MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
+    //digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
     digitalWrite(MotorALT_M0, LOW);
-    digitalWrite(MotorAZ_M2, LOW);
+    //digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
     digitalWrite(MotorAZ_M0, LOW);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
@@ -227,7 +250,7 @@ void BaixaResolucaoAz ()
   if ( MaxPassoAz == dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz / dReducao;
-    digitalWrite(MotorAZ_M2, LOW);
+    //digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
     digitalWrite(MotorAZ_M0, LOW);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
@@ -242,7 +265,7 @@ void BaixaResolucaoAlt ()
   if ( MaxPassoAlt == dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
+    //digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
     digitalWrite(MotorALT_M0, LOW);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
@@ -259,10 +282,10 @@ void AltaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz;
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
+    //digitalWrite(MotorALT_M2, AltaM2);
     digitalWrite(MotorALT_M1, AltaM1);
     digitalWrite(MotorALT_M0, AltaM0);
-    digitalWrite(MotorAZ_M2, AltaM2);
+    //digitalWrite(MotorAZ_M2, AltaM2);
     digitalWrite(MotorAZ_M1, AltaM1);
     digitalWrite(MotorAZ_M0, AltaM0);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
@@ -279,7 +302,7 @@ void AltaResolucaoAz ()
   if ( MaxPassoAz != dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz;
-    digitalWrite(MotorAZ_M2, AltaM2);
+    //digitalWrite(MotorAZ_M2, AltaM2);
     digitalWrite(MotorAZ_M1, AltaM1);
     digitalWrite(MotorAZ_M0, AltaM0);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
@@ -294,7 +317,7 @@ void AltaResolucaoAlt ()
   if ( MaxPassoAlt != dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
+   // digitalWrite(MotorALT_M2, AltaM2);
     digitalWrite(MotorALT_M1, AltaM1);
     digitalWrite(MotorALT_M0, AltaM0);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);

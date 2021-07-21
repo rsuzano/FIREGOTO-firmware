@@ -25,7 +25,7 @@ void RotinadeSetup() //:HSETUPON#
     lcd.setCursor(0,1);
     lcd.print("Executando o Setup  ");
     SerialPrint(" \n Rotina inicial de Setup \n ");
-    digitalWrite(MotorALT_M2, LOW);
+    //digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
     digitalWrite(MotorALT_M0, HIGH);
     digitalWrite(MotorAZ_M2, LOW);
@@ -34,7 +34,7 @@ void RotinadeSetup() //:HSETUPON#
   }
   setupflag = 2;
 
-  EnderecoLCD();
+  //EnderecoLCD();
   SerialPrint(" \n O valor atual timer e: ");
   SerialPrint(String(MinTimer - 200));
   SerialPrint(" (:HST00000# -> Quanto menor mais rapido ate o limite do motor ambos motores) \n");
@@ -53,7 +53,7 @@ void RotinadeSetup() //:HSETUPON#
 
   SerialPrint(" \n Acionamento do motor RA/ALT em velocidade maxima \n ");
   AzMotor.setSpeed(0);
-  AltMotor.setSpeed(MinTimer * MinTimer);
+  AltMotor.setSpeed(400);
   delay(6000);
   AltMotor.setSpeed(0);
 
@@ -71,7 +71,7 @@ void RotinadeSetup() //:HSETUPON#
 
   SerialPrint(" \n Acionamento do motor DEC/AZ em velocidade maxima \n ");
   AltMotor.setSpeed(0);
-  AzMotor.setSpeed(MinTimer * MinTimer);
+  AzMotor.setSpeed(400);
   delay(6000);
   AzMotor.setSpeed(0);
 
