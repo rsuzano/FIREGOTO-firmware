@@ -17,6 +17,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
+ 
+ // @RSUZANO - VERSÃO TESTE PARA TMC2209 UART
 #include <AccelStepper.h>
 #include <Arduino.h>
 #include <math.h>
@@ -26,6 +28,21 @@
 #include <DueFlashStorage.h>
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h> 
+#include <TMCStepper.h>
+#include "soft_uart.h"
+/*SoftwareSerial para Arduino DUE*/
+using namespace soft_uart;
+using namespace soft_uart::arduino_due;
+#define SOFT_UART_BIT_RATE  57600 // 57600 38400 1200 19200 9600 115200 300
+#define RX_BUF_LENGTH 256 // software serial port's reception buffer length
+#define TX_BUF_LENGTH 256 // software serial port's transmision buffer length
+#define RECEPTION_TIMEOUT 100 // milliseconds
+serial_tc7_declaration(RX_BUF_LENGTH,TX_BUF_LENGTH);
+serial_tc8_declaration(RX_BUF_LENGTH,TX_BUF_LENGTH);
+auto& SerialAz=serial_tc7; // serial_tc4_t& serial_obj=serial_tc4;
+auto& SerialAlt=serial_tc8; // serial_tc3_t& serial_obj=serial_tc3;
+
+/*SoftwareSerial para Arduino DUE*/
 
 //DEBUG
 int flagDebug = 0;
@@ -63,28 +80,34 @@ bool moveRADEC;
 #define MotorALT_Direcao 22
 #define MotorALT_Passo 24
 #define MotorALT_Sleep 26
-#define MotorALT_Reset 28
-#define MotorALT_M2 30
-#define MotorALT_M1 32
-#define MotorALT_M0 34
+#define MotorALT_Reset -1//28
+#define MotorALT_M2 -1//30
+#define MotorALT_M1 -1//32
+#define MotorALT_M0 -1//34
 #define MotorALT_Ativa 36
 #define MotorAZ_Direcao 38
 #define MotorAZ_Passo 40
 #define MotorAZ_Sleep 42
-#define MotorAZ_Reset 44
-#define MotorAZ_M2 46
-#define MotorAZ_M1 48
-#define MotorAZ_M0 50
+#define MotorAZ_Reset -1//44
+#define MotorAZ_M2 -1//46
+#define MotorAZ_M1 -1//48
+#define MotorAZ_M0 -1//50
 #define MotorAZ_Ativa 52
+#define DRIVER_ADDRESS 0b00 // TMC2209 Driver address according to MS1 and MS2
+#define R_SENSE 0.11f //Este valor deve ser alterado de acordo com o Resistor "R_SENSE" da breakout board (Fysetc, Watterott, etc...), consultar datasheet.
 
 
-LiquidCrystal_I2C lcd(0x27,20,4);
- 
+TMC2209Stepper driverAz(&SerialAz, R_SENSE, DRIVER_ADDRESS);
+
+
+TMC2209Stepper driverAlt(&SerialAlt, R_SENSE, DRIVER_ADDRESS);
+
+
 
 AccelStepper AltMotor(AccelStepper::DRIVER, MotorALT_Passo, MotorALT_Direcao);
 AccelStepper AzMotor(AccelStepper::DRIVER, MotorAZ_Passo, MotorAZ_Direcao);
 int accel = 1;
-
+LiquidCrystal_I2C lcd(0x27,20,4);
 
 //LEDs
 #define LedB 49
@@ -204,6 +227,8 @@ double Microssegundo = 0 , SegundoFracao = 0.0, MilissegundoSeg = 0.0, Milissegu
 
 
 void setup() {
+   configurarTMC2209();
+  
   //Pinos Led RGB
   pinMode(LedR, OUTPUT);
   pinMode(LedG, OUTPUT);
@@ -270,7 +295,10 @@ void setup() {
   byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
   memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
   Reducao = configurationFromFlash.Reducao;
-  if(Reducao==32) {
+  //Definindo micropassos 
+  driverAz.microsteps(Reducao);
+  driverAlt.microsteps(Reducao);
+  /*if(Reducao==32) {
     AltaM2 = HIGH;
     AltaM1 = LOW;
     AltaM0 = HIGH;
@@ -294,7 +322,10 @@ void setup() {
     AltaM2 = LOW;
     AltaM1 = LOW;
     AltaM0 = HIGH;
-  }
+  }*/
+  
+
+  
   MaxPassoAlt = configurationFromFlash.MaxPassoAlt;
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
   dReducao = Reducao;
@@ -327,6 +358,71 @@ void setup() {
   //lcd.clear();
 }
 
+void configurarTMC2209(){
+  /* Iniciando configuração TMC2209_UART */
+  /*Definindo endereço dos drivers como 0b00, os estão com o mesmo endereço pois estão em Seriais diferente,
+  se compartilhar a mesma Serial, os endereços devem ser único para cada driver*/
+  pinMode(32, OUTPUT);
+  pinMode(34, OUTPUT);
+  pinMode(48, OUTPUT);
+  pinMode(50, OUTPUT);
+  
+  digitalWrite(32,LOW);
+  digitalWrite(34,LOW);
+  digitalWrite(48,LOW);
+  digitalWrite(50,LOW);
+  /*Endereço drivers definidos*/
+  
+ 
+ /* Iniciando SoftwareSerial   
+ TX=> MotorXX_Reset
+ RX=> MotorXX_M2
+ */
+
+//#define MotorAZ_Reset 44
+//#define MotorAZ_M2 46
+  SerialAz.begin(
+    46,
+    44,
+    SOFT_UART_BIT_RATE,
+    soft_uart::data_bit_codes::EIGHT_BITS,
+    soft_uart::parity_codes::EVEN_PARITY,
+    //soft_uart::stop_bit_codes::ONE_STOP_BIT
+    soft_uart::stop_bit_codes::TWO_STOP_BITS
+  );
+//#define MotorALT_Reset 28
+//#define MotorALT_M2 30
+  SerialAlt.begin(
+    30,
+    28,
+    SOFT_UART_BIT_RATE,
+    soft_uart::data_bit_codes::EIGHT_BITS,
+    soft_uart::parity_codes::EVEN_PARITY,
+    //soft_uart::stop_bit_codes::ONE_STOP_BIT
+    soft_uart::stop_bit_codes::TWO_STOP_BITS
+  );
+
+  /*Configurando motores*/
+  driverAz.begin();                 //  SPI: Init CS pins and possible SW SPI pins
+  driverAz.pdn_disable(true);       // UART: Init SW UART (if selected) with default 115200 baudrate
+  driverAz.toff(5);                 // Enables driver in software
+  driverAz.rms_current(600);        // Set motor RMS current
+  driverAz.microsteps(16);  
+  driverAz.TPWMTHRS(1000);
+  //driverAz.en_spreadCycle(1); // Ativa modo SpreadCycle, menos silencioso, porém possibilita maiores rotações sem perder passos.
+  driverAz.pwm_autoscale(true);     // Needed for stealthChop
+  
+  
+  driverAlt.begin();                 //  SPI: Init CS pins and possible SW SPI pins
+  driverAlt.pdn_disable(true);       // UART: Init SW UART (if selected) with default 115200 baudrate
+  driverAlt.toff(5);                 // Enables driver in software
+  driverAlt.rms_current(600);        // Set motor RMS current
+  driverAlt.microsteps(16);  
+  driverAlt.TPWMTHRS(1000);
+  //driverAlt.en_spreadCycle(1); // Ativa modo SpreadCycle, menos silencioso, porém possibilita maiores rotações sem perder passos.
+  driverAlt.pwm_autoscale(true);     // Needed for stealthChop
+  /*Configurando motores*/
+}
 
 
 void loop() {

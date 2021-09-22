@@ -194,12 +194,14 @@ void BaixaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz / dReducao;
     MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
+    driverAz.microsteps(0);
+    driverAlt.microsteps(0);
+    /*digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
     digitalWrite(MotorALT_M0, LOW);
     digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, LOW);
+    digitalWrite(MotorAZ_M0, LOW);*/
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
     AltMotor.setAcceleration(dReducao * 4);
@@ -214,9 +216,10 @@ void BaixaResolucaoAz ()
   if ( MaxPassoAz == dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz / dReducao;
-    digitalWrite(MotorAZ_M2, LOW);
+    /*digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, LOW);
+    digitalWrite(MotorAZ_M0, LOW);*/
+    driverAz.microsteps(0);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
     AzMotor.setAcceleration(dReducao * 4);
     CalculaResolucao();
@@ -229,9 +232,10 @@ void BaixaResolucaoAlt ()
   if ( MaxPassoAlt == dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
+    /*digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, LOW);
+    digitalWrite(MotorALT_M0, LOW);*/
+    driverAlt.microsteps(0);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
     AltMotor.setAcceleration(dReducao * 4);
     CalculaResolucao();
@@ -246,12 +250,15 @@ void AltaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz;
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
+    /*digitalWrite(MotorALT_M2, AltaM2);
     digitalWrite(MotorALT_M1, AltaM1);
     digitalWrite(MotorALT_M0, AltaM0);
     digitalWrite(MotorAZ_M2, AltaM2);
     digitalWrite(MotorAZ_M1, AltaM1);
-    digitalWrite(MotorAZ_M0, AltaM0);
+    digitalWrite(MotorAZ_M0, AltaM0);*/
+    driverAz.microsteps(dReducao);
+    driverAlt.microsteps(dReducao);
+    
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
@@ -266,9 +273,11 @@ void AltaResolucaoAz ()
   if ( MaxPassoAz != dMaxPassoAz)
   {
     MaxPassoAz = dMaxPassoAz;
-    digitalWrite(MotorAZ_M2, AltaM2);
+   /* digitalWrite(MotorAZ_M2, AltaM2);
     digitalWrite(MotorAZ_M1, AltaM1);
-    digitalWrite(MotorAZ_M0, AltaM0);
+    digitalWrite(MotorAZ_M0, AltaM0);*/
+    driverAz.microsteps(dReducao);
+    
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
@@ -281,9 +290,10 @@ void AltaResolucaoAlt ()
   if ( MaxPassoAlt != dMaxPassoAlt)
   {
     MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
+    /*digitalWrite(MotorALT_M2, AltaM2);
     digitalWrite(MotorALT_M1, AltaM1);
-    digitalWrite(MotorALT_M0, AltaM0);
+    digitalWrite(MotorALT_M0, AltaM0);*/
+    driverAlt.microsteps(dReducao);
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
