@@ -22,15 +22,23 @@ void RotinadeSetup() //:HSETUPON#
   SerialPrint("\n ######################################################################### \n\n");
   if (setupflag == 0)
   {
+    #ifdef lcd
     lcd.setCursor(0,1);
     lcd.print("Executando o Setup  ");
+    #endif
     SerialPrint(" \n Rotina inicial de Setup \n ");
+    #ifdef DRV8825
     digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
     digitalWrite(MotorALT_M0, HIGH);
     digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW);
     digitalWrite(MotorAZ_M0, HIGH);
+    #endif
+    #ifdef TMC2209
+    driverAz.microsteps(2);
+    driverAlt.microsteps(2);
+    #endif
   }
   setupflag = 2;
 
@@ -79,12 +87,14 @@ void RotinadeSetup() //:HSETUPON#
   AltMotor.setSpeed(0);
   SerialPrint(" \n :HSRD000# -> Valor de Micropassos: ");
   SerialPrint(String(dReducao));
+  #ifdef DRV8825    
   SerialPrint(" \nValor de Alta Res M0: ");
   SerialPrint(String(AltaM0));
   SerialPrint(" \nValor de Alta Res M1: ");
   SerialPrint(String(AltaM1));
   SerialPrint(" \nValor de Alta Res M2: ");
   SerialPrint(String(AltaM2));
+  #endif
   SerialPrint(" \n Total da Relacao de engrenagens de RA/ALT: ");
   SerialPrint(String(MaxPassoAlt));
   SerialPrint(" (:HSAL00000000# -> (reducao * numero passos * micropasso)\n");
@@ -98,7 +108,10 @@ void RotinadeSetup() //:HSETUPON#
 
 void RotinadeSetupOff() //:HSETUPOFF#
 {
+
+  #ifdef lcd
   lcd.setCursor(0,1);
   lcd.print("SETUP finalizado    ");
+  #endif
   setupflag = 0;
 }
