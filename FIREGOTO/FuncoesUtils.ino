@@ -387,6 +387,7 @@ void EnderecoLCD()
 
 
 void LCDClockDisplay() {
+  #ifdef lcd
   // digital clock display of the time
   lcd.setCursor(0,1);
   
@@ -446,4 +447,5 @@ void LCDClockDisplay() {
   else {
     lcd.print(second());
   }
+  #endif
 }

@@ -1,6 +1,6 @@
 /*
- *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
- *  https://firegoto.com.br
+    FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    https://firegoto.com.br
     Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
@@ -15,41 +15,104 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
- */
+
+*/
+
+#define TMC2209
+//#define DRV8825
+
+#define BLUETOOTH
+//#define WIFI
 #include <AccelStepper.h>
 #include <Arduino.h>
 #include <math.h>
 #include <Time.h>
 #include <TimeLib.h>
-#include <DueTimer.h>
-#include <DueFlashStorage.h>
-#include <Wire.h> 
-#include <LiquidCrystal_I2C.h> 
+#include <Wire.h>
+//#include <LiquidCrystal_I2C.h>
+
+
+#ifdef __arm__
+#include "pinMapDUE.h"
+#ifdef TMC2209
+#include "soft_uart.h"
+/*SoftwareSerial para Arduino DUE*/
+using namespace soft_uart;
+using namespace soft_uart::arduino_due;
+#define SOFT_UART_BIT_RATE  57600 // 57600 38400 1200 19200 9600 115200 300
+#define RX_BUF_LENGTH 256 // software serial port's reception buffer length
+#define TX_BUF_LENGTH 256 // software serial port's transmision buffer length
+#define RECEPTION_TIMEOUT 100 // milliseconds
+
+
+serial_tc7_declaration(RX_BUF_LENGTH, TX_BUF_LENGTH);
+serial_tc8_declaration(RX_BUF_LENGTH, TX_BUF_LENGTH);
+auto& SerialAz = serial_tc7; // serial_tc4_t& serial_obj=serial_tc4;
+auto& SerialAlt = serial_tc8; // serial_tc3_t& serial_obj=serial_tc3;
+SerialAz.begin(
+  SW_RX_SERIAL_AZ,
+  SW_TX_SERIAL_AZ,
+  SOFT_UART_BIT_RATE,
+  soft_uart::data_bit_codes::EIGHT_BITS,
+  soft_uart::parity_codes::EVEN_PARITY,
+  //soft_uart::stop_bit_codes::ONE_STOP_BIT
+  soft_uart::stop_bit_codes::TWO_STOP_BITS
+);
+
+SerialAlt.begin(
+  SW_RX_SERIAL_ALT,
+  SW_TX_SERIAL_ALT,
+  SOFT_UART_BIT_RATE,
+  soft_uart::data_bit_codes::EIGHT_BITS,
+  soft_uart::parity_codes::EVEN_PARITY,
+  //soft_uart::stop_bit_codes::ONE_STOP_BIT
+  soft_uart::stop_bit_codes::TWO_STOP_BITS
+);
+#endif
+#endif
+#ifdef ESP32
+#include "pinMapESP32.h"
+#ifdef BLUETOOTH
+#include "BluetoothSerial.h"
+BluetoothSerial SerialBT;
+#endif
+#ifdef WIFI
+#include <WiFi.h>
+WiFiClient curClient;
+#endif
+boolean confirmRequestPending = false;
+#ifdef TMC2209
+#include <SoftwareSerial.h>
+SoftwareSerial SerialAz(SW_RX_SERIAL_AZ, SW_TX_SERIAL_AZ);
+SoftwareSerial SerialAlt(SW_RX_SERIAL_ALT, SW_TX_SERIAL_ALT);
+
+#include <TMCStepper.h>
+#define DRIVER_ADDRESS 0b00 // TMC2209 Driver address according to MS1 and MS2
+#define R_SENSE 0.11f //Este valor deve ser alterado de acordo com o Resistor "R_SENSE" da breakout board (Fysetc, Watterott, etc...), consultar datasheet.
+TMC2209Stepper driverAz(&SerialAz, R_SENSE, DRIVER_ADDRESS);
+TMC2209Stepper driverAlt(&SerialAlt, R_SENSE, DRIVER_ADDRESS);
+#endif
+#endif
+
 
 //DEBUG
 int flagDebug = 0;
-
-//2. Pinos Joystick
-#define xPin     A0   
-#define yPin     A1   
-#define kPin     A2   
 
 //Menu e joystick
 int tCount1;
 bool refresh;//lcd clear On/Off
 //leerJoystick
 int joyRead;
-int joyPos; 
+int joyPos;
 int lastJoyPos;
-long lastDebounceTime = 0; 
+long lastDebounceTime = 0;
 long debounceDelay = 70;                 //user define
 //Control Joystick
 bool PQCP;
 bool editMode;
 //sistema de menus
-int mNivel1;  
-int mNivel2;  
+int mNivel1;
+int mNivel2;
 //editmode
 byte n[19];
 int lastN;
@@ -59,53 +122,32 @@ bool exiT;
 bool moveRADEC;
 
 
-//Criacao dos motores
-#define MotorALT_Direcao 22
-#define MotorALT_Passo 24
-#define MotorALT_Sleep 26
-#define MotorALT_Reset 28
-#define MotorALT_M2 30
-#define MotorALT_M1 32
-#define MotorALT_M0 34
-#define MotorALT_Ativa 36
-#define MotorAZ_Direcao 38
-#define MotorAZ_Passo 40
-#define MotorAZ_Sleep 42
-#define MotorAZ_Reset 44
-#define MotorAZ_M2 46
-#define MotorAZ_M1 48
-#define MotorAZ_M0 50
-#define MotorAZ_Ativa 52
+//LiquidCrystal_I2C lcd(0x27, lcd_pin1, lcd_pin2);
 
 
-LiquidCrystal_I2C lcd(0x27,20,4);
- 
+
 
 AccelStepper AltMotor(AccelStepper::DRIVER, MotorALT_Passo, MotorALT_Direcao);
 AccelStepper AzMotor(AccelStepper::DRIVER, MotorAZ_Passo, MotorAZ_Direcao);
-int accel = 1;
+int accel = 350;
 
 
-//LEDs
-#define LedB 49
-#define LedR 53
-#define LedG 51
 int ledStateR = LOW;
 int ledStateB = LOW;
 int ledStateG = LOW;
 
 
 /*valores maximo para o passo (Valor ideal 1286400)*/
-double dMaxPassoAlt = 3844654; /* //valor de resolucao AR = Passo * MicroPasso * reducao ex(200*16*402)/4    (16*200*(117/11)*56)*/
-double dMaxPassoAz = 3844654; /*/valor de resolucao AR = Passo * MicroPasso * reducao ex(200*16*402)   (16*200*(118/11)*57)*/
-int dMinTimer = 500; /*/passo*/
-double dMaxSpeedAlt = 3844654;
-double dMaxSpeedAz = 3844654;
+double dMaxPassoAlt = 4659200; /* //valor de resolucao AR = Passo * MicroPasso * reducao ex(200*16*402)/4    (16*200*(117/11)*56)*/
+double dMaxPassoAz = 4659200; /*/valor de resolucao AR = Passo * MicroPasso * reducao ex(200*16*402)   (16*200*(118/11)*57)*/
+int dMinTimer = 200; /*/passo*/
+double dMaxSpeedAlt = 400;
+double dMaxSpeedAz = 400;
 int dReducao = 32;
 
 
 //Variaveis de persistencia e estrutura de dados ----------------------------------------------------------------------------------------------------------------
-DueFlashStorage dueFlashStorage;
+//DueFlashStorage dueFlashStorage;
 
 // The struct of the configuration.
 struct Configuration {
@@ -146,7 +188,6 @@ int UTC;
 
 int fractime;
 unsigned long currentMillis, previousMillis, PrimeiroCommanMillis, calculaRADECmountMillis = 0 , previousMillisLed = 0;
-
 
 //Variaveis de controle para ler comandos LX200  ----------------------------------------------------------------------------------------------------------------
 boolean cmdComplete = false, doispontos = true; // whether the string is complete
@@ -201,9 +242,24 @@ int AltitudeLimite = 90;
 int Segundo;
 double Microssegundo = 0 , SegundoFracao = 0.0, MilissegundoSeg = 0.0, MilissegundoI = 0.0;
 
-
-
 void setup() {
+
+  Serial1.begin(19200);
+  Serial2.begin(19200);
+  Serial.begin(9600);
+#ifdef __arm__
+  Serial3.begin(9600);
+  SerialUSB.begin(9600);
+#endif
+#ifdef ESP32
+#ifdef BLUETOOTH
+  iniciaBluetooth();
+#endif
+#ifdef WIFI
+  iniciaWiFi();
+#endif
+#endif
+  delay(2000);
   //Pinos Led RGB
   pinMode(LedR, OUTPUT);
   pinMode(LedG, OUTPUT);
@@ -216,7 +272,7 @@ void setup() {
   pinMode(yPin, INPUT);
   pinMode(kPin, INPUT_PULLUP);
 
-  
+
 
 
 
@@ -227,16 +283,14 @@ void setup() {
   }
   digitalWrite(LedR, ledStateR);
 
-  Serial.begin(9600);
-  Serial3.begin(9600);
-  SerialUSB.begin(9600);
   Wire1.begin();
-
-
-
+#ifdef TMC2209
+  Serial.println("Chamando configurarTMC2209");
+  configurarTMC2209();
+#endif
   /* Flash is erased every time new code is uploaded. Write the default configuration to flash if first time */
   // running for the first time?
-  uint8_t codeRunningForTheFirstTime = dueFlashStorage.read(0); // flash bytes will be 255 at first run
+  uint8_t codeRunningForTheFirstTime = 255;//dueFlashStorage.read(0); // flash bytes will be 255 at first run
   Serial.print("Primeira Execucao: ");
   if (codeRunningForTheFirstTime) {
     Serial.println("yes");
@@ -245,56 +299,61 @@ void setup() {
     configuration.MaxPassoAlt = dMaxPassoAlt;
     configuration.MaxPassoAz = dMaxPassoAz;
     configuration.MinTimer = dMinTimer;
-    configuration.latitude = -25.40;;
-    configuration.longitude = -49.20;
+    configuration.latitude = -23.3327977;
+    configuration.longitude = -51.1813004;
     configuration.SentidoDEC = 0;
     configuration.SentidoRA = 0;
     setTime(00, 00, 00, 01, 01, 2021);
     MilissegundoSeg = second();
     configuration.DataHora = now();
-    configuration.UTC = -2;
-    strcpy (configuration.Local, "Minha Casa");
+    configuration.UTC = -3;
+    //strcpy (configuration.Local, "Minha Casa");
+    configurationFromFlash = configuration;
     // write configuration struct to flash at adress 4
-    byte b2[sizeof(Configuration)]; // create byte array to store the struct
-    memcpy(b2, &configuration, sizeof(Configuration)); // copy the struct to the byte array
-    dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+    //byte b2[sizeof(Configuration)]; // create byte array to store the struct
+    //memcpy(b2, &configuration, sizeof(Configuration)); // copy the struct to the byte array
+    //    dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
     // write 0 to address 0 to indicate that it is not the first time running anymore
-    dueFlashStorage.write(0, 0);
+    //    dueFlashStorage.write(0, 0);
   }
   else {
     Serial.println("no");
   }
 
-
-  
-  byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
-  memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
+  //byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
+  //memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
   Reducao = configurationFromFlash.Reducao;
-  if(Reducao==32) {
+#ifdef DRV8825
+  if (Reducao == 32) {
     AltaM2 = HIGH;
     AltaM1 = LOW;
     AltaM0 = HIGH;
   }
-  if(Reducao==16) {
+  if (Reducao == 16) {
     AltaM2 = HIGH;
     AltaM1 = LOW;
     AltaM0 = LOW;
   }
-  if(Reducao==8) {
+  if (Reducao == 8) {
     AltaM2 = LOW;
     AltaM1 = HIGH;
     AltaM0 = HIGH;
   }
-  if(Reducao==4) {
+  if (Reducao == 4) {
     AltaM2 = LOW;
     AltaM1 = HIGH;
     AltaM0 = LOW;
   }
-  if(Reducao==2) {
+  if (Reducao == 2) {
     AltaM2 = LOW;
     AltaM1 = LOW;
     AltaM0 = HIGH;
   }
+#endif
+#ifdef TMC2209
+  driverAlt.microsteps(Reducao);
+  driverAz.microsteps(Reducao);
+#endif
   MaxPassoAlt = configurationFromFlash.MaxPassoAlt;
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
   dReducao = Reducao;
@@ -307,7 +366,7 @@ void setup() {
   SentidoDEC = configurationFromFlash.SentidoDEC;
   SentidoRA = configurationFromFlash.SentidoRA;
   setTime(configurationFromFlash.DataHora);
-  Serial.print("Bem vindo ao FIREGOTO para setup inicial digitar :HSETUPON# \n");
+  Serial.print("Bem vindo p/ setup :HSETUPON# \n");
   delay (2000);
   IniciaMotores();
   SentidodosMotores();
@@ -322,23 +381,47 @@ void setup() {
   ResolucaoeixoAzPassoGrau = (MaxPassoAz  / 360.0);
   //Instruções do LCD
 
-  //lcd.begin(Wire1); 
+  //lcd.begin(Wire1);
   //lcd.backlight();
   //lcd.clear();
+  /*
+    uint32_t Freq = 0;
+    Freq = getCpuFrequencyMhz();
+    Serial.print("CPU Freq = ");
+    Serial.print(Freq);
+    Serial.println(" MHz");
+    Freq = getXtalFrequencyMhz();
+    Serial.print("XTAL Freq = ");
+    Serial.print(Freq);
+    Serial.println(" MHz");
+    Freq = getApbFrequency();
+    Serial.print("APB Freq = ");
+    Serial.print(Freq);
+    Serial.println(" Hz");*/
+
+
 }
 
 
 
 void loop() {
+
+  currentMillis = millis();
+
   if (ledStateR == LOW) {
     ledStateR = HIGH;
   } else {
     // ledStateR = LOW;
   }
-  currentMillis = millis();
-  CalcPosicaoPasso();
-  if (SerialUSB.available() || Serial.available() || Serial3.available()) serialEvent();
 
+  CalcPosicaoPasso();
+#ifdef __arm__
+  if (SerialUSB.available() || Serial3.available()) serialEvent();
+#endif
+#ifdef BLUETOOTH
+  if (SerialBT.available()) serialEvent();
+#endif
+  if (Serial.available() ||  Serial1.available() ||  Serial2.available()) serialEvent();
   if ((numCommand != numCommandexec) && (flagCommand == 0))
   {
     SerialPrintDebug(String(numCommandexec));
@@ -353,8 +436,8 @@ void loop() {
     if (PrimeiroCommanMillis < currentMillis)
 
     {
-      PrintLocalHora();
-      SerialPrintDebug(String(Hora2DecHora(hour(), minute(), SegundoFracao), 10)) ;
+      //PrintLocalHora();
+      //SerialPrintDebug(String(Hora2DecHora(hour(), minute(), SegundoFracao), 10)) ;
       PrimeiroCommanMillis = PrimeiroCommanMillis + 1001;
     }
   }
@@ -406,6 +489,8 @@ void loop() {
       SerialPrintDebug("Distancia Total: ");
       SerialPrintDebug(String(DistanciaTotal));
       SerialPrintDebug(String(MaxPassoAz));
+
+
     }
     SetPosition();
     acompanhamento();
@@ -417,4 +502,63 @@ void loop() {
   AlteraMicroSeg();
   //controlJoystick();
   //menu();
+  //  }
 }
+#ifdef TMC2209
+
+void configurarTMC2209() {
+
+  /* Iniciando configuração TMC2209_UART */
+  /*Definindo endereço dos drivers como 0b00, os estão com o mesmo endereço pois estão em Seriais diferente,
+    se compartilhar a mesma Serial, os endereços devem ser único para cada driver*/
+  SerialAz.begin(38400);
+  SerialAlt.begin(38400);
+  pinMode(TMC2209_ALT_MS1, OUTPUT);
+  pinMode(TMC2209_ALT_MS2, OUTPUT);
+  pinMode(TMC2209_AZ_MS1, OUTPUT);
+  pinMode(TMC2209_AZ_MS2, OUTPUT);
+
+  digitalWrite(TMC2209_ALT_MS1, LOW);
+  digitalWrite(TMC2209_ALT_MS2, LOW);
+  digitalWrite(TMC2209_AZ_MS1, LOW);
+  digitalWrite(TMC2209_AZ_MS2, LOW);
+  /*Endereço drivers definidos*/
+
+
+  /* Iniciando SoftwareSerial
+    TX=> MotorXX_Reset
+    RX=> MotorXX_M2
+  */
+
+
+  /*Configurando motores*/
+  driverAz.begin();                 //  SPI: Init CS pins and possible SW SPI pins
+  driverAz.pdn_disable(true);       // UART: Init SW UART (if selected) with default 115200 baudrate
+  driverAz.toff(4);                 // Enables driver in software
+  driverAz.rms_current(800);        // Set motor RMS current
+  driverAz.blank_time(24);
+
+  driverAz.microsteps(dReducao);
+  driverAz.TPWMTHRS(1000);
+  driverAz.en_spreadCycle(0); // Ativa modo SpreadCycle, menos silencioso, porém possibilita maiores rotações sem perder passos.
+  driverAz.pwm_autoscale(true);     // Needed for stealthChop
+
+
+  driverAlt.begin();                 //  SPI: Init CS pins and possible SW SPI pins
+  driverAlt.pdn_disable(true);       // UART: Init SW UART (if selected) with default 115200 baudrate
+  driverAlt.toff(5);                 // Enables driver in software
+  driverAlt.rms_current(800);        // Set motor RMS current
+  driverAlt.microsteps(dReducao);
+  //driverAlt.TPWMTHRS(1000);
+  driverAlt.en_spreadCycle(0); // Ativa modo SpreadCycle, menos silencioso, porém possibilita maiores rotações sem perder passos.
+  driverAlt.pwm_autoscale(true);     // Needed for stealthChop
+
+  if (driverAlt.version() != 0x21) {
+    Serial.println("Drv X uart issue");
+  }
+  if (driverAz.version() != 0x21) {
+    Serial.println("Drv Y uart issue");
+  }
+
+}
+#endif

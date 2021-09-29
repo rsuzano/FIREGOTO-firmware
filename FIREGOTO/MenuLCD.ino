@@ -26,6 +26,7 @@
   328P Flash 5292 (17%) RAM 409(19%)
 
 */
+#ifdef lcd
 //====================================================
 // Menu
 //====================================================
@@ -302,7 +303,7 @@ int leeJoystick(){
   lastJoyPos=joyRead;
 }
 
-
+#endif
 /* MAPA DE DIRECOES
  *      y-      
     NO  N  NE     

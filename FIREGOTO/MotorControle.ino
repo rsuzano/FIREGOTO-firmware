@@ -1,6 +1,6 @@
 /*
- *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
- *  https://firegoto.com.br
+    FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    https://firegoto.com.br
     Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
@@ -15,53 +15,57 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
- */
+
+*/
 void IniciaMotores()
 {
   //Iniciar as variaveis do motor de passo
+
+  pinMode(MotorAZ_Ativa, OUTPUT);
+  pinMode(MotorALT_Ativa, OUTPUT);
   pinMode(MotorALT_Direcao, OUTPUT);
   pinMode(MotorALT_Passo, OUTPUT);
+  pinMode(MotorAZ_Direcao, OUTPUT);
+  pinMode(MotorAZ_Passo, OUTPUT);
+
+#ifdef DRV8825
   pinMode(MotorALT_Sleep, OUTPUT);
   pinMode(MotorALT_Reset, OUTPUT);
   pinMode(MotorALT_M2, OUTPUT);
   pinMode(MotorALT_M1, OUTPUT);
   pinMode(MotorALT_M0, OUTPUT);
-  pinMode(MotorALT_Ativa, OUTPUT);
-  pinMode(MotorAZ_Direcao, OUTPUT);
-  pinMode(MotorAZ_Passo, OUTPUT);
   pinMode(MotorAZ_Sleep, OUTPUT);
   pinMode(MotorAZ_Reset, OUTPUT);
   pinMode(MotorAZ_M2, OUTPUT);
   pinMode(MotorAZ_M1, OUTPUT);
   pinMode(MotorAZ_M0, OUTPUT);
-  pinMode(MotorAZ_Ativa, OUTPUT);
+
 
   //Aciona os pinos por padrão
-  digitalWrite(MotorALT_Direcao, LOW);
-  digitalWrite(MotorALT_Passo, LOW);
   digitalWrite(MotorALT_Sleep, HIGH);
   digitalWrite(MotorALT_Reset, HIGH);
   digitalWrite(MotorALT_M2, HIGH);
   digitalWrite(MotorALT_M1, HIGH);
   digitalWrite(MotorALT_M0, HIGH);
-  digitalWrite(MotorALT_Ativa, LOW);
-  digitalWrite(MotorAZ_Direcao, LOW);
-  digitalWrite(MotorAZ_Passo, LOW);
+
   digitalWrite(MotorAZ_Sleep, HIGH);
   digitalWrite(MotorAZ_Reset, HIGH);
   digitalWrite(MotorAZ_M2, HIGH);
   digitalWrite(MotorAZ_M1, HIGH );
   digitalWrite(MotorAZ_M0, HIGH);
+#endif
+
+  digitalWrite(MotorALT_Direcao, LOW);
+  digitalWrite(MotorALT_Passo, LOW);
+  digitalWrite(MotorAZ_Direcao, LOW);
+  digitalWrite(MotorAZ_Passo, LOW);
+  digitalWrite(MotorALT_Ativa, LOW);
   digitalWrite(MotorAZ_Ativa, LOW);
-
-  AltMotor.setMaxSpeed(dMaxSpeedAlt);
-  AltMotor.setAcceleration(dReducao);
-  AzMotor.setMaxSpeed(dMaxSpeedAz);
-  AzMotor.setAcceleration(dReducao);
-  Timer3.start(MinTimer);
-  Timer3.attachInterrupt(runmotor);
-
+  AltMotor.setMaxSpeed((dReducao / 10)*MinTimer);
+  AzMotor.setMaxSpeed((dReducao / 10)*MinTimer);
+  setaccelmsteps(dReducao);
+  Serial.print("setaccelmsteps(dReducao);"); Serial.println(dReducao);
+  startTimer(MinTimer);
 }
 
 void SentidodosMotores()
@@ -88,36 +92,74 @@ void SentidodosMotores()
 
 
 }
+void runmotorAlt ()
 
-void runmotor ()
 {
+  //Serial.println("runmotorAlt");
+  //cli();
   if (setupflag == 0)
   {
     AltMotor.run();
-    AzMotor.run();
   }
   else
   {
     AltMotor.runSpeed();
+  }
+  //sei();
+}
+
+void runmotorAz ()
+
+{
+  //cli();
+  //Serial.println("runmotorAz");
+  if (setupflag == 0)
+  {
+    AzMotor.run();
+  }
+  else
+  {
     AzMotor.runSpeed();
   }
+  // sei();
 }
 
 void setaccel()
 {
-  double tempdis;
-  tempdis = abs(AzMotor.distanceToGo());
-  AzMotor.setMaxSpeed(tempdis * dReducao );
-  tempdis = abs(AltMotor.distanceToGo());
-  AltMotor.setMaxSpeed(tempdis * dReducao );
+  Serial.print("setaccel()=>"); Serial.println(dReducao);
+  setaccelmsteps(dReducao);
 }
-
+void setMaxSpeeed() {
+  Serial.print("setMaxSpeed"); Serial.println(dReducao);
+  setSpeed((dReducao / 10)*MinTimer);
+}
+void setSpeed(int maxSpeed) {
+  AltMotor.setMaxSpeed(maxSpeed);
+  AzMotor.setMaxSpeed(maxSpeed);
+}
+void setaccelmsteps(int msteps) {
+  printAccelAndSpeed();
+  Serial.print("setaccelmsteps "); Serial.println(msteps);
+  AzMotor.setAcceleration(msteps * MinTimer);
+  AltMotor.setAcceleration(msteps * MinTimer);
+  printAccelAndSpeed();
+}
 void setaccel(int Accel)
 {
-  AltMotor.setMaxSpeed(Accel);
-  AzMotor.setMaxSpeed(Accel);
+  printAccelAndSpeed();
+  AltMotor.setAcceleration(Accel);
+  AzMotor.setAcceleration(Accel);
+  printAccelAndSpeed();
 }
-
+void printAccelAndSpeed() {
+  char str[200];
+  sprintf(str, "AltMotor.getMaxSpeed=>%d AltMotor.getAcceleration=>%d AzMotor.getMaxSpeed=>%d AzMotor.getAcceleration=>%d",
+          AltMotor.maxSpeed(),
+          AltMotor.acceleration(),
+          AzMotor.maxSpeed(),
+          AzMotor.acceleration());
+  Serial.println(str);
+}
 void addbackslash()
 {
   if (AzMotor.distanceToGo() >= 0)
@@ -194,46 +236,23 @@ void BaixaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz / dReducao;
     MaxPassoAlt = dMaxPassoAlt / dReducao;
+#ifdef DRV8825
     digitalWrite(MotorALT_M2, LOW);
     digitalWrite(MotorALT_M1, LOW);
     digitalWrite(MotorALT_M0, LOW);
     digitalWrite(MotorAZ_M2, LOW);
     digitalWrite(MotorAZ_M1, LOW );
     digitalWrite(MotorAZ_M0, LOW);
+#endif
+#ifdef TMC2209
+    Serial.print("baixaResolucao "); Serial.println(dReducao);
+    driverAz.microsteps(0);
+    driverAlt.microsteps(0);
+#endif
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
-    AltMotor.setAcceleration(dReducao * 4);
-    AzMotor.setAcceleration(dReducao * 4);
-    CalculaResolucao();
-    CalcPosicaoPasso();
-    ledStateG = HIGH;
-  }
-}
-void BaixaResolucaoAz ()
-{
-  if ( MaxPassoAz == dMaxPassoAz)
-  {
-    MaxPassoAz = dMaxPassoAz / dReducao;
-    digitalWrite(MotorAZ_M2, LOW);
-    digitalWrite(MotorAZ_M1, LOW );
-    digitalWrite(MotorAZ_M0, LOW);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() / dReducao);
-    AzMotor.setAcceleration(dReducao * 4);
-    CalculaResolucao();
-    CalcPosicaoPasso();
-    ledStateG = HIGH;
-  }
-}
-void BaixaResolucaoAlt ()
-{
-  if ( MaxPassoAlt == dMaxPassoAlt)
-  {
-    MaxPassoAlt = dMaxPassoAlt / dReducao;
-    digitalWrite(MotorALT_M2, LOW);
-    digitalWrite(MotorALT_M1, LOW);
-    digitalWrite(MotorALT_M0, LOW);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() / dReducao);
-    AltMotor.setAcceleration(dReducao * 4);
+    setaccelmsteps(dReducao);
+    Serial.print("baixaResolucao.setaceelmsteps "); Serial.println(dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
     ledStateG = HIGH;
@@ -246,51 +265,31 @@ void AltaResolucao ()
   {
     MaxPassoAz = dMaxPassoAz;
     MaxPassoAlt = dMaxPassoAlt;
+#ifdef DRV8825
     digitalWrite(MotorALT_M2, AltaM2);
     digitalWrite(MotorALT_M1, AltaM1);
     digitalWrite(MotorALT_M0, AltaM0);
     digitalWrite(MotorAZ_M2, AltaM2);
     digitalWrite(MotorAZ_M1, AltaM1);
     digitalWrite(MotorAZ_M0, AltaM0);
+#endif
+#ifdef TMC2209
+    Serial.print("altaResolucao"); Serial.println(dReducao);
+    driverAz.microsteps(dReducao);
+    driverAlt.microsteps(dReducao);
+#endif
+
+
     AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
     AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
     CalculaResolucao();
     CalcPosicaoPasso();
-    AltMotor.setAcceleration(dReducao * dReducao * 2);
-    AzMotor.setAcceleration(dReducao * dReducao * 2);
+    Serial.print("AltaResolucao.setaccelmteps"); Serial.println(dReducao);
+    setaccelmsteps(dReducao);
     ledStateG = LOW;
   }
 }
-void AltaResolucaoAz ()
-{
-  if ( MaxPassoAz != dMaxPassoAz)
-  {
-    MaxPassoAz = dMaxPassoAz;
-    digitalWrite(MotorAZ_M2, AltaM2);
-    digitalWrite(MotorAZ_M1, AltaM1);
-    digitalWrite(MotorAZ_M0, AltaM0);
-    AzMotor.setCurrentPosition((int)AzMotor.currentPosition() * dReducao);
-    CalculaResolucao();
-    CalcPosicaoPasso();
-    AzMotor.setAcceleration(dReducao * dReducao * 2);
-    ledStateG = LOW;
-  }
-}
-void AltaResolucaoAlt ()
-{
-  if ( MaxPassoAlt != dMaxPassoAlt)
-  {
-    MaxPassoAlt = dMaxPassoAlt;
-    digitalWrite(MotorALT_M2, AltaM2);
-    digitalWrite(MotorALT_M1, AltaM1);
-    digitalWrite(MotorALT_M0, AltaM0);
-    AltMotor.setCurrentPosition((int)AltMotor.currentPosition() * dReducao);
-    CalculaResolucao();
-    CalcPosicaoPasso();
-    AltMotor.setAcceleration(dReducao * dReducao * 2);
-    ledStateG = LOW;
-  }
-}
+
 
 
 
@@ -325,4 +324,10 @@ void protegemount()
     paramotors();
     ativaacom = 0;
   }
+}
+boolean isMotorAltRunning() {
+  return AltMotor.isRunning();
+}
+boolean isMotorAzRunning() {
+  return AzMotor.isRunning();
 }

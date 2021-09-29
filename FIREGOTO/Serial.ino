@@ -1,6 +1,6 @@
 /*
- *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
- *  https://firegoto.com.br
+    FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    https://firegoto.com.br
     Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
@@ -15,8 +15,8 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
- */
+
+*/
 //updates
 /*void lebuffercomand()
   {
@@ -52,17 +52,26 @@
   }*/
 void SerialPrint(String str)
 {
-  Serial.print(str);
-  Serial3.print(str);
+  //Serial.println(str);
+  Serial1.println(str);
+  Serial2.println(str);
+#ifdef WIFI
+  curClient.println(str);
+#endif
+#ifdef BLUETOOTH
+  SerialBT.println(str);
+#endif
+#ifdef __arm__
   SerialUSB.print(str);
+#endif
   ledStateB = HIGH;
 }
 
 /*
   void serialEvent3() {
-  while (Serial3.available()) {
+  while (SerialBT.available()) {
     // get the new byte:
-    char inChar = (char)Serial3.read();
+    char inChar = (char)SerialBT.read();
     if (inChar != ' ' )
     {
       pontBuffer = pontBuffer + 1;
@@ -91,69 +100,22 @@ void SerialPrint(String str)
   }
 */
 
-void serialEvent() {
-  while (Serial.available()) {
-    // get the new byte:
-    char inChar = (char)Serial.read();
-    if (inChar != ' ' )
-    {
-      Command[numCommand][pontBuffer] = inChar;
-      pontBuffer = pontBuffer + 1;
-    }
-    if (inChar == ':'  && Command[numCommand][1] != 'S')
-    {
-      pontBuffer = 0;
-      Command[numCommand][0] = inChar;
-      pontBuffer = pontBuffer + 1;
-    }
-    if (inChar == '#')
-    {
-      pontBuffer = 0;
-      numCommand = numCommand + 1;
-    }
+void processaLeitura(char inChar) {
+  if (inChar != ' ' )
+  {
+    Command[numCommand][pontBuffer] = inChar;
+    pontBuffer = pontBuffer + 1;
   }
-
-  while (Serial3.available()) {
-    // get the new byte:
-    char inChar = (char)Serial3.read();
-    if (inChar != ' ' )
-    {
-      Command[numCommand][pontBuffer] = inChar;
-      pontBuffer = pontBuffer + 1;
-    }
-    if (inChar == ':'  && Command[numCommand][1] != 'S')
-    {
-      pontBuffer = 0;
-      Command[numCommand][0] = inChar;
-      pontBuffer = pontBuffer + 1;
-    }
-    if (inChar == '#')
-    {
-      pontBuffer = 0;
-      numCommand = numCommand + 1;
-    }
+  if (inChar == ':'  && Command[numCommand][1] != 'S')
+  {
+    pontBuffer = 0;
+    Command[numCommand][0] = inChar;
+    pontBuffer = pontBuffer + 1;
   }
-
-  while (SerialUSB.available()) {
-    // get the new byte:
-    char inChar = (char)SerialUSB.read();
-    if (inChar != ' ' )
-    {
-      Command[numCommand][pontBuffer] = inChar;
-      pontBuffer = pontBuffer + 1;
-    }
-    if (inChar == ':'  && Command[numCommand][1] != 'S')
-    {
-      pontBuffer = 0;
-      Command[numCommand][0] = inChar;
-      pontBuffer = pontBuffer + 1;
-
-    }
-    if (inChar == '#' )
-    {
-      pontBuffer = 0;
-      numCommand = numCommand + 1;
-    }
+  if (inChar == '#')
+  {
+    pontBuffer = 0;
+    numCommand = numCommand + 1;
   }
   if (numCommand > 14 )
   {
@@ -163,6 +125,40 @@ void serialEvent() {
   {
     pontBuffer = 0;
   }
+}
+
+void serialEvent() {
+  while (Serial.available()) {
+    processaLeitura((char)Serial.read());
+  }
+  while (Serial1.available()) {
+    Serial.println("Serial1.available");
+    // get the new byte:
+    processaLeitura((char)Serial1.read());
+  }
+  while (Serial2.available()) {
+    Serial.println("Serial2.available");
+    // get the new byte:
+    processaLeitura((char)Serial2.read());
+  }
+#ifdef BLUETOOTH
+  while (SerialBT.available()) {
+    // get the new byte:
+    processaLeitura((char)SerialBT.read());
+  }
+#endif
+#ifdef __arm__
+  while (SerialUSB.available()) {
+    // get the new byte:
+    processaLeitura((char)SerialUSB.read());
+
+  }
+  while (Serial3.available()) {
+    // get the new byte:
+    processaLeitura((char)Serial3.read());
+  }
+#endif
+
 }
 void SerialPrintDebug(String str)
 {

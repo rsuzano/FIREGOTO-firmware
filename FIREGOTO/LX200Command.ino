@@ -1,6 +1,6 @@
 /*
- *  FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
- *  https://firegoto.com.br
+    FireGoTo - an Arduino Motorized Telescope Project for Dobsonian Mounts
+    https://firegoto.com.br
     Copyright (C) 2021  Rangel Perez Sardinha / Marcos Lorensini originally created by Reginaldo Nazar
 
     This program is free software: you can redistribute it and/or modify
@@ -15,20 +15,23 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
- */
+
+*/
+
 
 
 void executecommand()
 {
   flagCommand = 1;
   SerialPrintDebug(String(Command[numCommandexec][0])) ;
-
   SerialPrintDebug(String(Command[numCommandexec])) ;
-
+  
   if (cmdComplete) {
     PrimeiroCommanMillis = currentMillis + 5000;
     addbackslash();
+    if(Command[numCommandexec][1] !='G' && (Command[numCommandexec][2] !='R' || Command[numCommandexec][2] !='D')){
+      Serial.println(String(Command[numCommandexec]));
+    }
     if (Command[numCommandexec][0] != ':')
     {
       if (Command[numCommandexec][0] == 0x06)
@@ -184,11 +187,11 @@ void executecommand()
             }
             if (Command[numCommandexec][5] == 'A') //:HSSRA0#
             {
-            setSentidoRA(); //:HSSRA0#
+              setSentidoRA(); //:HSSRA0#
             }
             if (Command[numCommandexec][5] == 'E') //:HSSDEC0#
             {
-             setSentidoDEC(); //:HSSDEC0#
+              setSentidoDEC(); //:HSSDEC0#
             }
             break;
 
@@ -385,7 +388,7 @@ void setLocalData() //:SCMM/DD/YY# Change Handbox Date to MM/DD/YY #:SC 03/20/14
   configurationFromFlash.DataHora =  now();
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
 }
 
 void printDataLocal() //Get date 	:GC# 	 Reply: MM/DD/YY#
@@ -424,7 +427,7 @@ void setLocalHora()//:SLHH:MM:SS#  Set the local Time
   configurationFromFlash.DataHora =  now();
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
 }
 
 void PrintLocalHora()//:Get time (Local) 	:GLHH:MM:SS#	Reply: HH:MM:SS#
@@ -540,14 +543,15 @@ void printDECmount() //:GD# Get Telescope Declination. Returns: sDD*MM# or sDD*M
   int Ddeg = abs((int)DecDegtoDeg(DECmount));
   int Min = abs((int)DecDegtoMin(DECmount));
   int Sec = abs((int)DecDegtoSec(DECmount));
-  char str[9];
+  char str[10];
   if (DECmount < 0) {
     sprintf(str, "-%02d*%02d:%02d#", int(Ddeg), int(Min), int(Sec));
   } else {
     sprintf(str, "+%02d*%02d:%02d#", int(Ddeg), int(Min), int(Sec));
   }
   SerialPrint(str);
-
+  
+  
 }
 
 void setlatitude() //:StsDD*MM# Sets the current site latitude to sDD*MM# Returns: 0 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Invalid 1 - Valid
@@ -572,7 +576,7 @@ void setlatitude() //:StsDD*MM# Sets the current site latitude to sDD*MM# Return
   SerialPrint("1");
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
 }
 
 void printlatitude()// :Gt# Get Current Site Latitude Returns: sDD*MM# The latitude of the current site. Positive inplies North latitude.
@@ -611,7 +615,7 @@ void setlongitude() //:SgsDDD*MM# Set current site's longitude to DDD*MM an ASCI
   SerialPrint("1");
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
 }
 
 void printlongitude() // Get Current Site Longitude Returns: sDDD*MM#
@@ -940,33 +944,33 @@ void Stoptelescope () // Stop telescope 	:Q# 	Reply: [none]
   statusmovimentacao = 0;
   paramotors();
   ativaacom = 0;
-  setaccel(1);
+  setSpeed(1);
 }
 
 //Move telescope east (at current rate) 	:Me#	Reply: [none]
 void moveleste()
-{ setaccel(accel);
+{ setSpeed(accel);
   AzMotor.moveTo(0);
   ativaacom = 0;
 }
 
 //Move telescope west (at current rate) 	:Mw#	Reply: [none]
 void moveoeste()
-{ setaccel(accel);
+{ setSpeed(accel);
   AzMotor.moveTo(MaxPassoAlt);
   ativaacom = 0;
 }
 
 //Move telescope north (at current rate)	:Mn#	Reply: [none]
 void movenorte()
-{ setaccel(accel);
+{ setSpeed(accel);
   AltMotor.moveTo(0);
   ativaacom = 0;
 }
 
 //Move telescope south (at current rate)	:Ms#	Reply: [none]
 void movesul()
-{ setaccel(accel);
+{ setSpeed(accel);
   AltMotor.moveTo(MaxPassoAlt / 4);
   ativaacom = 0;
 }
@@ -974,7 +978,7 @@ void movesul()
 
 void paraleste()                                 //:Qe#	Reply: [none]
 {
-  setaccel(1);
+  setSpeed(1);
   AZmount = AzMotor.currentPosition();
   AzMotor.moveTo(AZmount);
 }
@@ -983,7 +987,9 @@ void paraleste()                                 //:Qe#	Reply: [none]
 void paraoeste()
 
 {
-  setaccel(1);
+  setSpeed(1);
+  char str[150];
+  sprintf(str,"Alt.msteps=>%d   Az.msteps=>%d",driverAlt.microsteps(),driverAz.microsteps());
   AZmount = AzMotor.currentPosition();
   AzMotor.moveTo(AZmount);
 }
@@ -991,7 +997,7 @@ void paraoeste()
 //Move telescope north (at current rate)	:Qn#	Reply: [none]
 void paranorte()
 {
-  setaccel(1);
+  setSpeed(1);
   ALTmount = AltMotor.currentPosition();
   AltMotor.moveTo(ALTmount);
 }
@@ -999,7 +1005,7 @@ void paranorte()
 //Move telescope south (at current rate)	:Qs#	Reply: [none]
 void parasul()
 {
-  setaccel(1);
+  setSpeed(1);
   ALTmount = AltMotor.currentPosition();
   AltMotor.moveTo(ALTmount);
 }
@@ -1010,36 +1016,39 @@ void parasul()
 
 void MoveRate()
 {
-  int ratepadrao = (int)(MaxPassoAz / 86400);
+  //int ratepadrao = (int)(MaxPassoAz / 86400);
+  int ratepadrao = (dReducao/10)*MinTimer;
   switch (Command[numCommandexec][2]) {
     case '0':
-      accel = ratepadrao * 2;
+      accel = ratepadrao / 4;
       break;
     case '1':
-      accel = ratepadrao * 8;
+      accel = ratepadrao / 2;
       break;
     case '2':
-      accel = ratepadrao * 32;
+      accel = ratepadrao ;
       break;
     case '3':
-      accel = ratepadrao * 128;
+      accel = ratepadrao * 3;
       break;
     case '4':
-      accel = ratepadrao * 512;
+      accel = ratepadrao * 4;
       break;
     case '5':
-      accel = ratepadrao * 1024;
+      accel = ratepadrao * 8;
       break;
     case '6':
-      accel = ratepadrao * 4096;
+      accel = ratepadrao * 16;
       break;
     case '7':
-      accel = ratepadrao * 10000;
+      accel = ratepadrao * 24;
       break;
     case '8':
-      accel = ratepadrao * 100000;
+      accel = ratepadrao * 40;
       break;
-
+    case '9':
+      accel = ratepadrao * 60;
+      break;
     case 'G':
       AltaResolucao();
       accel = ratepadrao * 2;
@@ -1050,11 +1059,11 @@ void MoveRate()
       break;
     case 'M':
       AltaResolucao();
-      accel = ratepadrao * 128;
+      accel = ratepadrao * 256;
       break;
     case 'S':
       BaixaResolucao();
-      accel = ratepadrao * 128000;
+      accel = ratepadrao * 256;
       break;
   }
 }
@@ -1072,7 +1081,11 @@ void setReducao()  //:HSRD000#
   // write configuration struct to flash at adress 4
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  #ifdef TMC2209
+    driverAz.microsteps(Reducao);
+    driverAlt.microsteps(Reducao);
+#endif
   SerialPrint("1 - Steps for stepper motors OK");
 
 }
@@ -1095,7 +1108,7 @@ void setMaxPassoAlt()  //:HSAL00000000#
   // write configuration struct to flash at adress 4
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
   SerialPrint("1 - OK Set AL microsteps");
 
 }
@@ -1117,7 +1130,7 @@ void setMaxPassoAz() //:HSAZ00000000#
   MaxPassoAz = configurationFromFlash.MaxPassoAz;
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
   SerialPrint("1 - OK Set AZ microsteps");
 
 }
@@ -1131,14 +1144,12 @@ void setMinTimer() //:HST00000#
   str += Command[numCommandexec][7];
   str += Command[numCommandexec][8];
   unsigned int SS = str.toInt();
-  configurationFromFlash.MinTimer = SS + 200;
+  configurationFromFlash.MinTimer = SS;//; + 200;
   MinTimer = configurationFromFlash.MinTimer ;  //valor minimo
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
-  Timer3.stop();
-  Timer3.start(MinTimer);
-
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  restartTimer(SS);
   SerialPrint("1 - OK Set timer");
 }
 
@@ -1151,7 +1162,7 @@ void setSentidoRA() //:HSSRA0#
   SentidoRA = configurationFromFlash.SentidoRA;
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
   SentidodosMotores();
   SerialPrint("1 - OK Set RA Direction");
 }
@@ -1164,7 +1175,7 @@ void setSentidoDEC() //:HSSDEC0#
   SentidoDEC = configurationFromFlash.SentidoDEC;
   byte b2[sizeof(Configuration)]; // create byte array to store the struct
   memcpy(b2, &configurationFromFlash, sizeof(Configuration)); // copy the struct to the byte array
-  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
+  //  dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash
   SentidodosMotores();
   SerialPrint("1 - OK Set DEC Direction");
 }
@@ -1366,7 +1377,8 @@ void getMinTimer() //:HGT#
 */
 void lcdALTmount() //:GA# Get Telescope Altitude Returns: sDD*MM# or sDD*MM'SS#
 {
-  char str[9];
+  #ifdef lcd
+  char str[10];
   int Ddeg, Min, Sec;
   Ddeg = (int)DecDegtoDeg(eixoAltGrausDecimal);
   Min = (int)DecDegtoMin(eixoAltGrausDecimal);
@@ -1378,13 +1390,15 @@ void lcdALTmount() //:GA# Get Telescope Altitude Returns: sDD*MM# or sDD*MM'SS#
   }
   str[3] = 223;
   lcd.print(str);
-
+  #endif
 }
 
 void lcdAZmount()
 {
+  #ifdef lcd
   char str[10];
   sprintf(str, "%03d*%02d:%02d#", int(DecDegtoDeg(eixoAzGrausDecimal)), int(DecDegtoMin(eixoAzGrausDecimal)), int(DecDegtoSec(eixoAzGrausDecimal)));
   str[3] = 223;
   lcd.print(str);
+  #endif
 }
