@@ -1,0 +1,10 @@
+.button-box{
+  width: 64px;
+  height: 64px;
+  display: inline-block;
+  vertical-align: top;
+}
+.button-box button{
+  width: 64px;
+  height: 64px;
+  }
