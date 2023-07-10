@@ -72,7 +72,7 @@ void callRunMotorAlt( void * pvParameters ) {
 void restartTimer(int MinTimer) {
   cli();
   timerAlarmWrite(timer1, MinTimer , true);
-  sei()
+  sei();
   timerRestart(timer1);
   cli();
   timerAlarmWrite(timer2, MinTimer , true);
