@@ -989,7 +989,9 @@ void paraoeste()
 {
   setSpeed(1);
   char str[150];
+#ifdef TMC2209    
   sprintf(str,"Alt.msteps=>%d   Az.msteps=>%d",driverAlt.microsteps(),driverAz.microsteps());
+#endif
   AZmount = AzMotor.currentPosition();
   AzMotor.moveTo(AZmount);
 }
